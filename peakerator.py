@@ -6,7 +6,7 @@ import argparse
 import numpy
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     arg_parser = argparse.ArgumentParser(description="peakerator.py: find " +
                                          "the peak or inflection point in a " +
                                          "voltammogram")
