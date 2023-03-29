@@ -118,5 +118,6 @@ if __name__ == '__main__':
             x_mark_v = inflection_point_v
         else:
             assert False, "should not get here"
-        plt.plot(x_mark_v, spline_model(x_mark_v), "rx")
+        if x_mark_v is not None:
+            plt.plot(x_mark_v, spline_model(x_mark_v), "rx")
         plt.show()
