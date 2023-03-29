@@ -34,6 +34,9 @@ def get_num_header_lines(file_obj: typing.TextIO) -> int:
 def read_raw_vg_as_df(filename: str) -> pandas.DataFrame:
     with open(vg_filename, "r") as input_file:
         header_nlines = get_num_header_lines(input_file)
+# a single chain of method calls can produce the desired
+# two-column dataframe, with negative current in the "I"
+# column and with the voltage in the "V" column
         return pandas.read_csv(
             input_file,
             sep=", ",
@@ -53,9 +56,6 @@ def read_raw_vg_as_df(filename: str) -> pandas.DataFrame:
 if __name__ == '__main__':
     args = get_args()
 
-# a single chain of method calls can produce the desired
-# two-column dataframe, with negative current in the "I"
-# column and with the voltage in the "V" column
     vg_filename = args.filename
     vg_df = read_raw_vg_as_df(vg_filename)
 
