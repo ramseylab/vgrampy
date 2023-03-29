@@ -13,6 +13,7 @@ def get_args() -> argparse.Namespace:
     gpi = arg_parser.add_mutually_exclusive_group(required=True)
     gpi.add_argument('--peak', action="store_true", default=False)
     gpi.add_argument('--inf', action='store_true', default=False)
+    arg_parser.add_argument('--smooth', type=float, default=0.01)
     arg_parser.add_argument('--plot', action='store_true', default=False)
     arg_parser.add_argument('--log', dest='log', action='store_true',
                             default=False)
@@ -62,10 +63,12 @@ if __name__ == '__main__':
     if args.log:
         vg_df["I"] = numpy.log10(vg_df["I"])
 
+    smooth = args.smooth
+
     spline_model = scipy.interpolate.UnivariateSpline(vg_df["V"],
                                                       vg_df["I"],
                                                       k=4,
-                                                      s=1/100)
+                                                      s=smooth)
     spline_model_d = spline_model.derivative(n=1)
     roots_d = spline_model_d.roots()
     spline_model_dd = spline_model.derivative(n=2)
@@ -87,7 +90,7 @@ if __name__ == '__main__':
         spline_model = scipy.interpolate.UnivariateSpline(vg_df["V"],
                                                           vg_df["I"],
                                                           k=5,
-                                                          s=1/100)
+                                                          s=smooth)
         spline_model_dd = spline_model.derivative(n=2)
         spline_model_ddd = spline_model.derivative(n=3)
 
