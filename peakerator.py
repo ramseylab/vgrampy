@@ -1,6 +1,5 @@
 import pandas
 import scipy.interpolate
-import scipy.optimize
 import typing
 import matplotlib.pyplot as plt
 import argparse
