@@ -25,13 +25,14 @@ def get_args() -> argparse.Namespace:
                             help="specify the analyte peak voltage (V)")
     arg_parser.add_argument('--vwidth', type=float, default=0.135,
                             help="specify the width of the analyte peak (V)")
-    gpi = arg_parser.add_mutually_exclusive_group()
-    gpi.add_argument('-p', '--plot', action='store_true', dest='plot',
-                     help='set to true in order to plot the detilted ' +
-                     'voltammogram')
-    gpi.add_argument('-s', '--signal', action='store_true', dest='signal',
-                     help='set to true in order to compute a "signal" value')
-    arg_parser.set_defaults(signal=True)
+    arg_parser.add_argument('--recenter', action='store_true',
+                             dest='recenter',
+                             help="recenter the window on the empirical " +
+                             "peak and then re-analyze the data with the " +
+                             "new window")
+    arg_parser.add_argument('--plot', action='store_true', dest='plot',
+                            help='set to true in order to plot the detilted ' +
+                            'voltammogram')
     arg_parser.add_argument('filename')
     return arg_parser.parse_args()
 
@@ -150,22 +151,16 @@ def v2signal(vg_filename: str,
     vg_df["detilted"] = detilter(vg_df["V"].to_numpy(),
                                  vg_df["smoothed"].to_numpy())
 
-    if args.plot:
-        plt.plot(vg_df["V"], vg_df["detilted"], "b-")
-        plt.show()
-    else:
-        signal_getter = make_signal_getter(vstart, vend)
-        (peak_signal, peak_v) = signal_getter(vg_df["V"], vg_df["detilted"])
-
-        if peak_signal is not None:
-            print(f"Peak voltage: {peak_v:0.3f} V")
-            print(f"Signal: {peak_signal:0.3f} 1/V^2")
-        else:
-            print("no peak detected")
+    signal_getter = make_signal_getter(vstart, vend)
+    (peak_signal, peak_v) = signal_getter(vg_df["V"], vg_df["detilted"])
+    
+    return (peak_signal, peak_v, vg_df)
 
 
 if __name__ == '__main__':
     args = get_args()
+    assert not (args.recenter and args.plot), \
+        "Cannot specify both recenter and plot at the same time"
 
     vg_filename = args.filename
     vcenter = args.vcenter
@@ -182,9 +177,34 @@ if __name__ == '__main__':
     assert smoothness_param >= 0.0, "smoothness param must be " + \
         f"nonnegative: {smoothness_param}"
 
-    v2signal(vg_filename,
-             do_log,
-             smoothing_bw,
-             vcenter,
-             vwidth,
-             smoothness_param)
+    (peak_signal, peak_v, vg_df) = v2signal(vg_filename,
+                                            do_log,
+                                            smoothing_bw,
+                                            vcenter,
+                                            vwidth,
+                                            smoothness_param)
+
+    if peak_signal is not None:
+        print(f"Peak voltage: {peak_v:0.3f} V")
+        print(f"Signal: {peak_signal:0.3f} 1/V^2")
+        if args.recenter:
+            (peak_signal, peak_v, vg_df) = v2signal(vg_filename,
+                                                    do_log,
+                                                    smoothing_bw,
+                                                    peak_v,
+                                                    vwidth,
+                                                    smoothness_param)
+            if peak_signal is not None:
+                print(f"Recentered peak voltage: {peak_v:0.3f} V")
+                print(f"Recentered peak Signal: {peak_signal:0.3f} 1/V^2")
+            else:
+                print("no peak detected with recentered window; try --plot")
+    else:
+        print("no peak detected in original window; try running with --plot")
+
+    if args.plot:
+        plt.plot(vg_df["V"], vg_df["detilted"], "b-")
+        plt.xlabel('baseline potential (V)')
+        plt.ylabel('log peak current, normalized')
+        plt.show()
+
