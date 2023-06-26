@@ -17,6 +17,9 @@ analyte peak).
 - `git`
 - `bash` shell
 
+So far, this software has only been tested on MacOS 12.6.5 on Apple M1. It has 
+not been tested on Windows/x86_64, Linux/x86_64, etc.
+
 # How to install and run `vg2signal.py`:
 
 These instructions assume that you know how to use the bash shell (and modify
