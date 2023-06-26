@@ -1,7 +1,7 @@
 # vgrampy
 
-# Author: Stephen Ramsey
-# Date: June 26, 2023
+### Author: Stephen Ramsey
+### Date: June 26, 2023
 
 Python tools for analyzing electrochemistry voltammograms. The script
 `vg2signal.py` processes a potentiostat voltammogram data file using a method
