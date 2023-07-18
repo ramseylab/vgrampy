@@ -13,46 +13,26 @@ import vg2signal
 import os
 import sys
 import pandas as pd
+from statistics import mean
+import openpyxl
 
-if __name__ == '__main__':
-    print("hey")
-    folderpath = input("Folder to Process: ")
-    if not os.path.exists(folderpath):
-        sys.exit("Error: invalid file path")
-
-    do_log = input("Log? (Y/N) ")
-    if do_log == "Y":
-        do_log = True
-    elif do_log == "N":
-        do_log = False
+def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth):
+    if log_str == True:   
+        log_str = "_log"
     else:
-        sys.exit("Error: choose 'Y' or 'N'")
-
-    recenter = input("Recenter? (Y/N) ")
-    if recenter == "Y":
-        recenter = True
-    elif recenter == "N":
-        recenter = False
+        log_str = "_NOlog"
+    if recenter_str == True:
+        recenter_str = "_recenter"
     else:
-        sys.exit("Error: choose 'Y' or 'N'")
-
-    plot = input("Plot? (Y/N) ")
-    if plot == "Y":
-        plot = True
-    elif plot == "N":
-        plot = False
-    else:
-        sys.exit("Error: choose 'Y' or 'N'")
-    smoothing_bw = float(input("Smoothing Bandwidth (default = 0.02) ") or 0.02)
-    if smoothing_bw <= 0.0:
-        sys.exit("Error: invalid bandwidth")
-    smoothness_param = float(input("Smoothing Bandwidth (default = 0.0000001) ") or 0.0000001)
-    if smoothness_param <= 0.0:
-        sys.exit("Error: invalid smoothness")
-    vcenter = float(input("Center (default = 1.073649114) ") or 1.073649114)
-    vwidth = float(input("Width (default = 0.135) ") or 0.135)
-
-
+        recenter_str "_NOrecenter"
+    
+    smoothing_str = "_"+str(smoothing_bw)
+    smoothness_str = "_"+str(smoothness_param)
+    vcenter_str = "_"+str(vcenter)
+    vwidth_str = "_"+str(vwidth)
+    data_str = log_str+recenter_str+smoothing_str+smoothness_str+vcenter_str+vwidth_str+".xlsx"
+    stats_str = "stats"+data_str
+    signal_str = "signal"+data_str
 
     os.chdir(folderpath)
     signal_lst = []
@@ -76,12 +56,15 @@ if __name__ == '__main__':
                 conctemp = conc[:pi]+'.'+conc[pi+1:]
                 conc = conctemp
             #print(conc)
+            if peak_signal == None:
+                    peak_signal = 0
             signal_lst.append([filename, peak_signal])
             if conc in conc_dict.keys():
                 conclst = conc_dict[conc]
                 conclst.append(peak_signal)
                 conc_dict[conc] = conclst
             else:
+                
                 conc_dict[conc] = [peak_signal]
             #print(f"Signal: {peak_signal:0.3f} 1/V^2")
     signal_df = pd.DataFrame(signal_lst)
@@ -90,12 +73,46 @@ if __name__ == '__main__':
         #print(key)
         val = conc_dict[key]
         #print(conc_dict[key])
-        avgval = np.mean(val)
+        print(val)
+        avgval = np.average(val)
         stdval = np.std(val)
         cvval = stdval/avgval
         concstr = str(float(key))+"\u03BCM"
         conc_list.append([concstr,avgval,stdval,cvval])
     conc_df = pd.DataFrame(conc_list)
     #print(signal_df)
-    conc_df.to_excel("stats.xlsx", index=False, header=["conc","average","std","CV"])
-    signal_df.to_excel("signals.xlsx", index=False, header=["file", "signal"])
+    #stats_title = "stats_"+ 
+    conc_df.to_excel(stats_str, index=False, header=["conc","average","std","CV"])
+    signal_df.to_excel(signal_str, index=False, header=["file", "signal"])
+
+def param_analysis(folderpath):
+    print("param_analysis")
+    
+
+if __name__ == '__main__':
+    
+    folderpath = input("Folder to Process: ")
+    analysis = input("Aggregate Analyze? (Y/N): ")
+    if not os.path.exists(folderpath):
+        sys.exit("Error: invalid file path")
+
+    do_log = False
+    #log_str = "_log"
+    recenter = True
+    recenter_str = "_recenter"
+    plot = False
+    smoothing_bw = 0.00000001
+    smoothing_str = "_"+str(smoothing_bw)
+    smoothness_param = 0.00000001
+    smoothness_str = "_"+str(smoothness_param)
+    vcenter = 1.073649114
+    vwidth = 0.135
+
+    param_lst = [0.00000001,0.0000001,0.03,0.000000000000000000000000000000000001]
+    #smoothness_param_lst = [0.0000001, 0.00000001,0.000000001,0.0000000001]
+    #vwidth_param_lst = [0.148, 0.150]
+    for s in param_lst:
+        run_vg2(folderpath, do_log, recenter, smoothing_bw, s, vcenter, vwidth)
+
+    if analysis == "Y":
+        param_analysis(folderpath)
