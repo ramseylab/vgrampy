@@ -15,6 +15,7 @@ import sys
 import pandas as pd
 from statistics import mean
 import openpyxl
+import scipy.stats as stats
 
 def make_xlsx_str(do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth):
     if do_log == True:   
@@ -73,6 +74,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
     signal_df = pd.DataFrame(signal_lst)
     conc_list = []
     for key in conc_dict:
+        print(key)
         val = conc_dict[key]
         avgval = np.average(val)
         stdval = np.std(val)
@@ -81,10 +83,12 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
         else:
             cvval = 0
         concstr = str(float(key))+"\u03BCM"
-        conc_list.append([concstr,avgval,stdval,cvval])
+        zerolst = conc_dict["00"]
+        ttest = stats.ttest_ind(zerolst,val)[1]
+        conc_list.append([concstr,avgval,stdval,cvval,ttest])
 
     conc_df = pd.DataFrame(conc_list)
-    conc_df.to_excel(stats_str, index=False, header=["conc","average","std","CV"])
+    conc_df.to_excel(stats_str, index=False, header=["conc","average","std","CV","T-Test"])
     signal_df.to_excel(signal_str, index=False, header=["file", "signal"])
     
 
@@ -123,7 +127,7 @@ def run_folderpath(folderpath):
                 run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, s)
 
 
-def param_analysis(folders):
+def param_analysis(folders, param): #param-'CV' or 'T-Test'
     best = dict()
     for folder in folders:
         os.chdir(folder)
@@ -132,36 +136,45 @@ def param_analysis(folders):
             if fn[:5] == "stats":
                 print(fn)
                 df = pd.read_excel(fn)
-                for i in range(len(df['CV'])):
+                for i in range(len(df[param])):
                     conc = df['conc'][i]
-                    cv = df['CV'][i]
+                    pval = df[param][i]
                     if conc in best.keys():
-                        oldcv = best[conc][1]
-                        if oldcv > cv:
+                        oldpval = best[conc][1]
+                        if oldpval > pval:
                             print("better")
-                            best[conc] = (fn,cv)
-                        elif oldcv == cv:
+                            best[conc] = (folder+fn,pval)
+                        elif oldpval == pval:
                             print("same")
                             oldfn = best[conc][0]
                             if type(oldfn) != list:
-                                oldfn = [oldfn, fn]
+                                oldfn = [oldfn, folder+fn]
                             else:
-                                oldfn.append(fn)
-                            best[conc] = (oldfn,oldcv)
+                                oldfn.append(folder+fn)
+                            best[conc] = (oldfn,oldpval)
                     else:
-                        best[conc] = (fn,cv)
+                        best[conc] = (folder+fn,pval)
+    print("Parameters for Best {}".format(param))
     for key in best:
         print(key)
         print(best[key])
 
 
 if __name__ == '__main__':
-    folders =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_04_19_SOD4'] #['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_06_08_Buffer1/ph6txt',
-                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_06_08_Buffer1/ph7txt',
-                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_06_08_Buffer1/ph8txt']
+    
+    folders =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_06_08_Buffer1/ph6txt',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_06_08_Buffer1/ph7txt',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_06_08_Buffer1/ph8txt']
                 #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_04_19_SOD4']
+
+    #just_analysis = input("Just param_analysis? (Y/N) ")
+    just_analysis = "N"
+    if just_analysis == "Y":
+        param_analysis(folders,'T-Test')
+        sys.exit()
+
     for folder in folders:
         print("Processing: "+folder)
         run_folderpath(folder)
 
-    param_analysis(folders)
+    param_analysis(folders,'T-Test')
