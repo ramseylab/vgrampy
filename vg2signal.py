@@ -89,12 +89,10 @@ def make_signal_getter(vstart: float,
     def signal_getter_func(v: numpy.array,
                            lisd: numpy.array):
         v_in = numpy.logical_and(v >= vstart, v <= vend)
-        spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
-                                                          lisd[v_in],
-                                                          k=4)
-        spline_model_d = spline_model.derivative(n=1)
+        spline_model = scipy.interpolate.CubicSpline(v[v_in], lisd[v_in])
+        spline_model_d = spline_model.derivative(nu=1)
+        spline_model_dd = spline_model.derivative(nu=2)
         roots_d = spline_model_d.roots()
-        spline_model_dd = spline_model.derivative(n=2)
         dd_at_roots = numpy.array(list(map(spline_model_dd, roots_d)))
         critical_point_v = None
         if len(dd_at_roots) > 0:
@@ -104,6 +102,7 @@ def make_signal_getter(vstart: float,
         signal = None
         if critical_point_v is not None:
             signal = -dd_at_roots[ind_peak]
+        print(signal, critical_point_v)
         return (signal, critical_point_v)
     return signal_getter_func
 
