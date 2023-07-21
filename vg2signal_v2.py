@@ -101,7 +101,7 @@ def make_signal_getter(vstart: float,
         roots_d = scipy.interpolate.PPoly.from_spline(spline_model_d_ppoly).roots(extrapolate=False)
 #        spline_model_dd = spline_model.derivative(n=2)
 #        spline_model_dd = make_hessian_getter(spline_model_d)
-        spline_model_dd = numdifftools.Derivative(spline_model_d, n=1)
+        spline_model_dd = numdifftools.Derivative(spline_model, n=2)
         dd_at_roots = numpy.array(list(map(spline_model_dd, roots_d)))
         critical_point_v = None
         if len(dd_at_roots) > 0:
