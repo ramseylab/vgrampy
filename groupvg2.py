@@ -58,7 +58,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
                        vcenter,
                        vwidth,
                        smoothness_param)
-            #print(filename)
+            print(filename)
             idx1 = filename.rfind("cbz")
             idx2 = filename[idx1:].find("_")
             conc = filename[idx1+3:idx1+idx2]
@@ -104,37 +104,14 @@ def run_folderpath(folderpath):
     if not os.path.exists(folderpath): #if folderpath does not exist
         sys.exit("Error: invalid file path") #exit
 
-    do_log = False #log param
+    do_log = True #log param
     recenter = True #double detilt/ recenter param
-    smoothing_bw = 0.00000001 #smoothing bandwidth param
+    smoothing_bw = 0.02 #smoothing bandwidth param
     smoothness_param = 0.00000001 #smoothness param
     vcenter = 1.073649114 #center for detilt window
     vwidth = 0.135 #detilt window width
-
+    run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth)
     #change below to try different params
-    param_lst = [0.00000001,0.0000001,0.03,0.000000000000000000000000000000000001]
-    vwidth_param_lst = [0.125,0.133,0.135,0.145]
-    for s in param_lst:
-        #print(s)
-        run_vg2(folderpath, do_log, recenter, smoothing_bw, s, vcenter, vwidth)
-        for s in param_lst:
-            #print(s)
-            run_vg2(folderpath, do_log, recenter, s, smoothness_param, vcenter, vwidth)
-            for s in vwidth_param_lst:
-                #print(s)
-                run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, s)
-
-    do_log = True
-    for s in param_lst:
-        #print(s)
-        run_vg2(folderpath, do_log, recenter, smoothing_bw, s, vcenter, vwidth)
-        for s in param_lst:
-            #print(s)
-            run_vg2(folderpath, do_log, recenter, s, smoothness_param, vcenter, vwidth)
-            for s in vwidth_param_lst:
-                #print(s)
-                run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, s)
-
 
 def param_analysis(folders, param): #param-'CV' or 'T-Test'
     best = dict() #dictionary of best parameters
@@ -171,10 +148,11 @@ def param_analysis(folders, param): #param-'CV' or 'T-Test'
 
 if __name__ == '__main__':
     #folderpath to analyze
-    folders =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/comment/2023_04_19_SOD4']#['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_06_08_Buffer1/ph6txt',
-                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_06_08_Buffer1/ph7txt',
-                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_06_08_Buffer1/ph8txt']
-                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/multiplefolders/2023_04_19_SOD4']
+    folders =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_06_08_Buffer1/ph6txt',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_06_08_Buffer1/ph7txt',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_06_08_Buffer1/ph8txt',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_19_SOD4',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_03_SOD2/S4']
 
     #just_analysis = input("Just param_analysis? (Y/N) ")
     just_analysis = "N"

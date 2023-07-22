@@ -8,6 +8,7 @@ import skfda.preprocessing.smoothing as skfda_smoothing
 import skfda
 import csaps
 import matplotlib.pyplot as plt
+import numdifftools
 
 
 def get_args() -> argparse.Namespace:
@@ -89,20 +90,23 @@ def make_signal_getter(vstart: float,
     def signal_getter_func(v: numpy.array,
                            lisd: numpy.array):
         v_in = numpy.logical_and(v >= vstart, v <= vend)
-        spline_model = scipy.interpolate.CubicSpline(v[v_in], lisd[v_in])
+        sg = scipy.signal.savgol_filter(lisd[v_in],window_length=5,polyorder=3, mode="nearest")
+        spline_model = scipy.interpolate.CubicSpline(v[v_in], sg)
         spline_model_d = spline_model.derivative(nu=1)
         spline_model_dd = spline_model.derivative(nu=2)
         roots_d = spline_model_d.roots()
         dd_at_roots = numpy.array(list(map(spline_model_dd, roots_d)))
         critical_point_v = None
+        print(dd_at_roots)
         if len(dd_at_roots) > 0:
             ind_peak = numpy.argmin(dd_at_roots)
             if dd_at_roots[ind_peak] < 0:
+                print("in")
                 critical_point_v = roots_d[ind_peak]
         signal = None
         if critical_point_v is not None:
             signal = -dd_at_roots[ind_peak]
-        print(signal, critical_point_v)
+        #print(signal,critical_point_v)
         return (signal, critical_point_v)
     return signal_getter_func
 
