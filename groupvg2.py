@@ -69,7 +69,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
             
             if peak_signal == None: #if find no peak
                 peak_signal = 0
-            signal_lst.append([filename, peak_signal]) #add text filename & peak signal to signal list
+            signal_lst.append([filename, peak_signal, peak_v]) #add text filename & peak signal to signal list
             if conc in conc_dict.keys(): #for each concentration
                 conclst = conc_dict[conc]
                 conclst.append(peak_signal) #add peak signal to concentration dictionary
@@ -97,10 +97,10 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
     conc_df = pd.DataFrame(conc_list)
     #save stats list to excel
     conc_df.to_excel(stats_str, index=False, header=["conc","average","std","CV","T-Test"])
-    signal_df.to_excel(signal_str, index=False, header=["file", "signal"]) #save signal list to excel
+    signal_df.to_excel(signal_str, index=False, header=["file", "signal","peak V"]) #save signal list to excel
     
 
-def run_folderpath(folderpath):
+def run_folderpath(folderpath, vcenter=1.073649114):
     if not os.path.exists(folderpath): #if folderpath does not exist
         sys.exit("Error: invalid file path") #exit
 
@@ -108,14 +108,30 @@ def run_folderpath(folderpath):
     recenter = True #double detilt/ recenter param
     smoothing_bw = 0.02 #smoothing bandwidth param
     smoothness_param = 0.00000001 #smoothness param
-    vcenter = 1.073649114 #center for detilt window
+    #vcenter = 1.073649114 #center for detilt window
     vwidth = 0.135 #detilt window width
-    run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth)
+    #run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth)
     #change below to try different params
+    bw_lst = [0.02]
+    smoothness_lst = [0.00000001]
+    vwidth_lst = [0.135]
+    vcenter_lst = [1.073649114]
+    for s in smoothness_lst:
+        print("smoothness=",s)
+        #run_vg2(folderpath, do_log, recenter, smoothing_bw, s, vcenter, vwidth)
+        for bw in bw_lst:
+            print("bw=",s)
+            #run_vg2(folderpath, do_log, recenter, bw, s, vcenter, vwidth)
+            for w in vwidth_lst:
+                #run_vg2(folderpath, do_log, recenter, bw, s, vcenter, w)
+                for c in vcenter_lst:
+                    run_vg2(folderpath, do_log, recenter, bw, s, c, w)
+    
 
 def param_analysis(folders, param): #param-'CV' or 'T-Test'
-    best = dict() #dictionary of best parameters
+    
     for folder in folders: #for each folder in list
+        best = dict() #dictionary of best parameters
         os.chdir(folder)
         #print(folder)
         for fn in os.listdir(): #for each 'stats' excel file in folder
@@ -125,11 +141,13 @@ def param_analysis(folders, param): #param-'CV' or 'T-Test'
                 for i in range(len(df[param])): #for each concentration
                     conc = df['conc'][i] #get concentration
                     pval = df[param][i] #get parameter value (CV or t-Test)
+                    psignal = df['average'][i] #get average signal
                     filepath = folder+fn
                     if conc in best.keys(): #if conc already in dict
                         oldpval = best[conc][1]
+                        oldpsignal = best[conc][2]
                         if oldpval > pval: #if this param val better than best
-                            best[conc] = (filepath,pval) #reassign dict values (filepath, param value)
+                            best[conc] = [filepath,pval,psignal] #reassign dict values (filepath, param value)
                         elif oldpval == pval: #if param val the saem as best
                             oldfn = best[conc][0]
                             #create list of filepaths to save in dict
@@ -137,9 +155,13 @@ def param_analysis(folders, param): #param-'CV' or 'T-Test'
                                 oldfn = [oldfn, filepath]
                             else:
                                 oldfn.append(filepath)
-                            best[conc] = (oldfn,oldpval)
+                            best[conc] = [oldfn,oldpval,oldpsignal]
                     else: #if conc NOT in dict
-                        best[conc] = (filepath,pval) #save initial path & param val
+                        best[conc] = [filepath,pval,psignal] #save initial path & param val
+        print("Parameters for Best {}".format(param))
+        for key in best:
+            print(key)
+            print(best[key])
     print("Parameters for Best {}".format(param))
     for key in best:
         print(key)
@@ -148,22 +170,22 @@ def param_analysis(folders, param): #param-'CV' or 'T-Test'
 
 if __name__ == '__main__':
     #folderpath to analyze
-    folders =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_06_08_Buffer1/ph6txt',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_06_08_Buffer1/ph7txt',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_06_08_Buffer1/ph8txt',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_19_SOD4',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/k3/sg/2023_04_03_SOD2/S4']
-
+    foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_19_SOD4',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_05_17_SAL2/SAL',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_03_SOD2/S4']
+    #foldersB =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_06_08_Buffer1/ph6txt',
+               #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_06_08_Buffer1/ph7txt',
+               #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_06_08_Buffer1/ph8txt']
     #just_analysis = input("Just param_analysis? (Y/N) ")
     just_analysis = "N"
     if just_analysis == "Y":
-        param_analysis(folders,'T-Test')
+        param_analysis(foldersS,'CV')
         sys.exit()
 
-    #run vg2 for each file in each folder in list
-    for folder in folders:
+    #run vg2 for each file in each folder in list SALIVA
+    for folder in foldersS:
         print("Processing: "+folder)
         run_folderpath(folder)
 
     #analyze for best parameters
-    param_analysis(folders,'T-Test')
+    param_analysis(foldersS,'T-Test')
