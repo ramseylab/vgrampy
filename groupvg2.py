@@ -58,6 +58,17 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
                        vcenter,
                        vwidth,
                        smoothness_param)
+            if recenter:
+                #vwidth2 = 0.135
+                vcenter2= peak_v
+                if type(vcenter2) != float:
+                    vcenter2 = 0.135
+                (peak_signal, peak_v, vg_df) = vg2signal.v2signal(filename,
+                       do_log,
+                       smoothing_bw,
+                       vcenter,
+                       vwidth,
+                       smoothness_param)
             print(filename)
             idx1 = filename.rfind("cbz")
             idx2 = filename[idx1:].find("_")
@@ -112,9 +123,9 @@ def run_folderpath(folderpath, vcenter=1.073649114):
     vwidth = 0.135 #detilt window width
     #run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth)
     #change below to try different params
-    bw_lst = [0.02]
-    smoothness_lst = [0.00000001]
-    vwidth_lst = [0.135]
+    bw_lst = [0.009,0.004]
+    smoothness_lst = [0.0000000000000000000001]
+    vwidth_lst = [0.15,0.135,0.14,0.145]
     vcenter_lst = [1.073649114]
     for s in smoothness_lst:
         print("smoothness=",s)
@@ -123,8 +134,10 @@ def run_folderpath(folderpath, vcenter=1.073649114):
             print("bw=",s)
             #run_vg2(folderpath, do_log, recenter, bw, s, vcenter, vwidth)
             for w in vwidth_lst:
+                print("width=",w)
                 #run_vg2(folderpath, do_log, recenter, bw, s, vcenter, w)
                 for c in vcenter_lst:
+                    print("vcenter=",c)
                     run_vg2(folderpath, do_log, recenter, bw, s, c, w)
     
 
@@ -170,12 +183,15 @@ def param_analysis(folders, param): #param-'CV' or 'T-Test'
 
 if __name__ == '__main__':
     #folderpath to analyze
-    foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_19_SOD4',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_05_17_SAL2/SAL',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_04_03_SOD2/S4']
-    #foldersB =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_06_08_Buffer1/ph6txt',
-               #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_06_08_Buffer1/ph7txt',
-               #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_24_smoothing/2023_06_08_Buffer1/ph8txt']
+    foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_19_SOD4',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_05_17_SAL2/SAL',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_03_SOD2/S4']
+    #foldersB =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_08_Buffer1/ph6txt',
+               #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_08_Buffer1/ph7txt',
+               #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_08_Buffer1/ph8txt',
+              # 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_12_Buffer2/1',
+               #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_12_Buffer2/2',
+               #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_12_Buffer2/3']
     #just_analysis = input("Just param_analysis? (Y/N) ")
     just_analysis = "N"
     if just_analysis == "Y":
@@ -188,4 +204,4 @@ if __name__ == '__main__':
         run_folderpath(folder)
 
     #analyze for best parameters
-    param_analysis(foldersS,'T-Test')
+    param_analysis(foldersS,'CV')
