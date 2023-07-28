@@ -59,7 +59,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
                        vwidth,
                        smoothness_param)
             if recenter:
-                #vwidth2 = 0.135
+                vwidth2 = 0.15
                 vcenter2= peak_v
                 if type(vcenter2) != float:
                     vcenter2 = 0.135
@@ -67,7 +67,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
                        do_log,
                        smoothing_bw,
                        vcenter,
-                       vwidth,
+                       vwidth2,
                        smoothness_param)
             print(filename)
             idx1 = filename.rfind("cbz")
@@ -91,7 +91,6 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
     signal_df = pd.DataFrame(signal_lst)
     conc_list = []
     for key in conc_dict: #for each concentration
-        #print(key)
         val = conc_dict[key] #all the signals for conc
         avgval = np.average(val) #avg signal for conc
         stdval = np.std(val) #std of signals for conc
@@ -101,11 +100,15 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
             cvval = 0 #if average is 0, make CV 0
         concstr = str(float(key))+"\u03BCM"
         #compare signal list for this conc to no cbz
-        zerolst = conc_dict["00"]
-        ttest = stats.ttest_ind(zerolst,val)[1]
+        if "00" in conc_dict.keys():
+            zerolst = conc_dict["00"]
+            ttest = stats.ttest_ind(val,zerolst)[0]
+        else:
+            ttest = 0
         conc_list.append([concstr,avgval,stdval,cvval,ttest]) #add stats for conc
 
-    conc_df = pd.DataFrame(conc_list)
+    conc_lst_sorted = sorted(conc_list, key=lambda x:float(x[0][:-2]))
+    conc_df = pd.DataFrame(conc_lst_sorted)
     #save stats list to excel
     conc_df.to_excel(stats_str, index=False, header=["conc","average","std","CV","T-Test"])
     signal_df.to_excel(signal_str, index=False, header=["file", "signal","peak V"]) #save signal list to excel
@@ -123,9 +126,9 @@ def run_folderpath(folderpath, vcenter=1.073649114):
     vwidth = 0.135 #detilt window width
     #run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth)
     #change below to try different params
-    bw_lst = [0.009,0.004]
-    smoothness_lst = [0.0000000000000000000001]
-    vwidth_lst = [0.15,0.135,0.14,0.145]
+    bw_lst = [0.003]
+    smoothness_lst = [0.0000000000000000000001, 0, 0.00000001,0.0000001]
+    vwidth_lst = [0.15]
     vcenter_lst = [1.073649114]
     for s in smoothness_lst:
         print("smoothness=",s)
@@ -183,9 +186,10 @@ def param_analysis(folders, param): #param-'CV' or 'T-Test'
 
 if __name__ == '__main__':
     #folderpath to analyze
-    foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_19_SOD4',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_05_17_SAL2/SAL',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_04_03_SOD2/S4']
+    #stats_log_recenter_0.004_1e-22_1.073649114_0.135
+    foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_19_SOD4',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S4']
+                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_27/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_27/2023_05_17_SAL2/SAL',
     #foldersB =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_08_Buffer1/ph6txt',
                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_08_Buffer1/ph7txt',
                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_08_Buffer1/ph8txt',
