@@ -20,7 +20,7 @@ import scipy.stats as stats
 ##make_xlsx_str
 ##creates parameter strings to save 'signal' and 'stats' files
 ##return: 'signal' and 'stats' filenames
-def make_xlsx_str(do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth):
+def make_xlsx_str(do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth1, vwidth2):
     if do_log == True:   #if run with log-transform
         log_str = "_log"
     else: #if not use log-transform
@@ -33,9 +33,10 @@ def make_xlsx_str(do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwi
     smoothing_str = "_"+str(smoothing_bw)
     smoothness_str = "_"+str(smoothness_param)
     vcenter_str = "_"+str(vcenter)
-    vwidth_str = "_"+str(vwidth)
+    vwidth1_str = "_"+str(vwidth1)
+    vwidth2_str = "_"+str(vwidth2)
     #combine all params into one string
-    data_str = log_str+recenter_str+smoothing_str+smoothness_str+vcenter_str+vwidth_str+".xlsx"
+    data_str = log_str+recenter_str+smoothing_str+smoothness_str+vcenter_str+vwidth1_str+vwidth2_str+".xlsx"
     stats_return = "stats"+data_str
     signal_return = "signal"+data_str
     return stats_return, signal_return
@@ -43,9 +44,9 @@ def make_xlsx_str(do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwi
 ##run vg2 function from vg2signal.py
 ##run through each text file in folder
 ##save all peak signals into 'signals' file, save avg, std, cv, t-test in 'stats' file
-def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth):
+def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth1, vwidth2):
     #get filenames to save
-    stats_str, signal_str = make_xlsx_str(do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth)
+    stats_str, signal_str = make_xlsx_str(do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth1, vwidth2)
 
     os.chdir(folderpath) #change to desired folderpath
     signal_lst = []
@@ -56,13 +57,10 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
                        do_log,
                        smoothing_bw,
                        vcenter,
-                       vwidth,
+                       vwidth1,
                        smoothness_param)
             if recenter:
-                vwidth2 = 0.15
                 vcenter2= peak_v
-                if type(vcenter2) != float:
-                    vcenter2 = 0.135
                 (peak_signal, peak_v, vg_df) = vg2signal.v2signal(filename,
                        do_log,
                        smoothing_bw,
@@ -127,21 +125,22 @@ def run_folderpath(folderpath, vcenter=1.073649114):
     #run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth)
     #change below to try different params
     bw_lst = [0.003]
-    smoothness_lst = [0.0000000000000000000001, 0, 0.00000001,0.0000001]
-    vwidth_lst = [0.15]
+    smoothness_lst = [0.0000000000000000000001]
+    vwidth2_lst = [0.15]
+    vwidth1_lst = [0.12,0.13,0.135,0.14,0.145,0.15,0.155,0.16]
     vcenter_lst = [1.073649114]
     for s in smoothness_lst:
         print("smoothness=",s)
         #run_vg2(folderpath, do_log, recenter, smoothing_bw, s, vcenter, vwidth)
         for bw in bw_lst:
             print("bw=",s)
-            #run_vg2(folderpath, do_log, recenter, bw, s, vcenter, vwidth)
-            for w in vwidth_lst:
-                print("width=",w)
-                #run_vg2(folderpath, do_log, recenter, bw, s, vcenter, w)
-                for c in vcenter_lst:
-                    print("vcenter=",c)
-                    run_vg2(folderpath, do_log, recenter, bw, s, c, w)
+            for w1 in vwidth1_lst:
+                print("width1=",w1)
+                for w2 in vwidth2_lst:
+                    print("width2=",w2)
+                    for c in vcenter_lst:
+                        print("vcenter=",c)
+                        run_vg2(folderpath, do_log, recenter, bw, s, c, w1,w2)
     
 
 def param_analysis(folders, param): #param-'CV' or 'T-Test'

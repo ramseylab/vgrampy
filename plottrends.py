@@ -29,7 +29,7 @@ def get_data(folder, trend, stat):
 
 def plot_trend(pltn,folder,trend,stat,zeros):
 	gdict = get_data(folder,trend,stat)
-	xlabels = ["smoothing_bw","smoothness_param","vcenter","vwidth"]
+	xlabels = ["smoothing_bw","smoothness_param","vcenter","vwidth1","vwidth2"]
 	titlename = folder[folder.rfind("/")+1:]
 	colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']
 	shapes = ['o','s','v','h','X']
@@ -45,7 +45,7 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 	#plt.show()
 
 def plot_double_trend(pltn,folder,trend,zeros):
-	xlabels = ["smoothing_bw","smoothness_param","vcenter","vwidth"]
+	xlabels = ["smoothing_bw","smoothness_param","vcenter","vwidth1","vwidth2"]
 	titlename = folder[folder.rfind("/")+1:]
 	dictcv = get_data(folder,trend,'CV')
 	dictTT = get_data(folder,trend,'T-Test')
@@ -78,10 +78,10 @@ if __name__ == '__main__':
 	foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_19_SOD4','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S4']
 	tall = 0
 	wide = 0
-	param = 2 #1=smoothing_bw,2=smoothness_param,3=vcenter,4=vwidth
+	param = 4 #1=smoothing_bw,2=smoothness_param,3=vcenter,4=vwidth1,5=vwidth2
 	stat = 'both' #'CV' or 'TT' or both
-	zeros = True
-	#xlabels = ["smoothing_bw","smoothness_param","vcenter","vwidth"]
+	zeros = False
+	#xlabels = ["smoothing_bw","smoothness_param","vcenter","vwidth1","vwidth2"]
 	talltotal = -(-len(foldersS)//3)
 	widetotal = 3
 	fig = plt.figure(figsize=(15,10))
