@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import openpyxl
 import os
+from mpl_toolkits.mplot3d import Axes3D
 
 def get_data(folder, trend, stat):
 	os.chdir(folder)
@@ -72,29 +73,58 @@ def plot_double_trend(pltn,folder,trend,zeros):
 	ax2.legend(bbox_to_anchor=(1, 1.14), loc='upper right',prop={'size': 7})
 	pltn.suptitle(titlename)
 	#plt.show()
+
+def threeD_plot(folder,param1,param2,trend,zeros):
+	p1data = get_data(folder,param1,trend)
+	p2data = get_data(folder,param2,trend)
+	fig = plt.figure()
+	ax = fig.add_subplot(projection='3d')
+	xlabels = ["smoothing_bw","smoothness_param","vcenter","vwidth1","vwidth2"]
+	titlename = folder[folder.rfind("/")+1:]
+	colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']
+	shapes = ['o','s','v','h','X']
+	cnt = 0
+	for key in p1data:
+		if ((key=="0.0\u03BCM") and (zeros==True)) or (key!="0.0\u03BCM"):
+			ax.plot(p1data[key][0],p1data[key][1],p2data[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
+		cnt +=1
+	ax.set_zlabel(trend)
+	ax.set_ylabel(xlabels[param2-1])
+	ax.set_xlabel(xlabels[param1-1])
+	ax.set_title(titlename)
+	plt.legend(bbox_to_anchor=(0, 1.15), loc='upper left',prop={'size': 7})
+	plt.show()
 					
 
 if __name__ == '__main__':
 	foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_19_SOD4','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S4']
 	tall = 0
 	wide = 0
-	param = 4 #1=smoothing_bw,2=smoothness_param,3=vcenter,4=vwidth1,5=vwidth2
-	stat = 'both' #'CV' or 'TT' or both
-	zeros = False
+	param1 = 4 #1=smoothing_bw,2=smoothness_param,3=vcenter,4=vwidth1,5=vwidth2
+	param2 = 5
+	stat = 'CV' #'CV' or 'TT' or both
+	zeros = True
 	#xlabels = ["smoothing_bw","smoothness_param","vcenter","vwidth1","vwidth2"]
-	talltotal = -(-len(foldersS)//3)
-	widetotal = 3
-	fig = plt.figure(figsize=(15,10))
-	axs = fig.subfigures(talltotal,widetotal)
+	
+	threeD=True
+	if not threeD:
+		talltotal = -(-len(foldersS)//3)
+		widetotal = 3
+		fig = plt.figure(figsize=(15,10))
+		axs = fig.subfigures(talltotal,widetotal)
+		
 	#fig.supxlabel(xlabels[param-1])
 	#fig.supylabel(stat)
 
 	for folder in foldersS:
 		#print(tall,",",wide)
 		if stat != 'both':
-			plot_trend(axs[tall,wide],folder, param, stat, zeros)
+			if threeD:
+				threeD_plot(folder, param1, param2, stat, zeros)
+			else:
+				plot_trend(axs[tall,wide],folder, param1, stat, zeros)
 		else:
-			plot_double_trend(axs[tall,wide],folder,param, zeros)
+			plot_double_trend(axs[tall,wide],folder,param1, zeros)
 		if wide ==2:
 			tall+=1
 			wide=0
