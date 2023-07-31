@@ -40,6 +40,7 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 			pltn.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
 		cnt +=1
 	pltn.set_ylabel(stat)
+	pltn.xscale('log')
 	pltn.set_xlabel(xlabels[trend-1])
 	pltn.set_title(titlename)
 	pltn.legend(bbox_to_anchor=(0, 1.15), loc='upper left',prop={'size': 7})
@@ -53,10 +54,11 @@ def plot_double_trend(pltn,folder,trend,zeros):
 	ax1 = pltn.subplots()
 	#plt.figure(figsize=(10,10))
 	colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']
+	shapes = ['o','s','v','h','X']
 	cnt = 0
 	for key in dictcv:
 		if (key=="0.0\u03BCM" and zeros) or key!="0.0\u03BCM":
-			ax1.scatter(dictcv[key][0],dictcv[key][1],label=key+' CV',marker='o',facecolors='none',edgecolors=colors[cnt])
+			ax1.scatter(dictcv[key][0],dictcv[key][1],label=key+' CV',marker=shapes[cnt],facecolors='none',edgecolors=colors[cnt])
 		cnt+=1
 	ax1.tick_params(axis='y')
 	ax1.set_xlabel(xlabels[trend-1])
@@ -65,10 +67,11 @@ def plot_double_trend(pltn,folder,trend,zeros):
 	cnt=0
 	for key in dictTT:
 		if (key=="0.0\u03BCM" and zeros) or key!="0.0\u03BCM":
-			ax2.scatter(dictTT[key][0],dictTT[key][1],label=key+' T-Test',marker='o',color=colors[cnt])
+			ax2.scatter(dictTT[key][0],dictTT[key][1],label=key+' T-Test',marker=shapes[cnt],color=colors[cnt])
 		cnt+=1
 	ax2.tick_params(axis='y')
 	ax2.set_ylabel('T-Test')
+	#ax1.set_xscale('log')
 	ax1.legend(bbox_to_anchor=(0, 1.14), loc='upper left',prop={'size': 7})
 	ax2.legend(bbox_to_anchor=(1, 1.14), loc='upper right',prop={'size': 7})
 	pltn.suptitle(titlename)
@@ -97,16 +100,16 @@ def threeD_plot(folder,param1,param2,trend,zeros):
 					
 
 if __name__ == '__main__':
-	foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_19_SOD4','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S4']
+	foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_19_SOD4','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S4']
 	tall = 0
 	wide = 0
-	param1 = 4 #1=smoothing_bw,2=smoothness_param,3=vcenter,4=vwidth1,5=vwidth2
+	param1 = 1 #1=smoothing_bw,2=smoothness_param,3=vcenter,4=vwidth1,5=vwidth2
 	param2 = 5
-	stat = 'CV' #'CV' or 'TT' or both
+	stat = 'both' #'CV' or 'TT' or both
 	zeros = True
 	#xlabels = ["smoothing_bw","smoothness_param","vcenter","vwidth1","vwidth2"]
 	
-	threeD=True
+	threeD=False
 	if not threeD:
 		talltotal = -(-len(foldersS)//3)
 		widetotal = 3

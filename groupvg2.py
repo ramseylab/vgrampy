@@ -61,6 +61,8 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
                        smoothness_param)
             if recenter:
                 vcenter2= peak_v
+                if vcenter2 == None:
+                    vcenter2 = vcenter
                 (peak_signal, peak_v, vg_df) = vg2signal.v2signal(filename,
                        do_log,
                        smoothing_bw,
@@ -124,10 +126,10 @@ def run_folderpath(folderpath, vcenter=1.073649114):
     vwidth = 0.135 #detilt window width
     #run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcenter, vwidth)
     #change below to try different params
-    bw_lst = [0.003]
-    smoothness_lst = [0.0000000000000000000001]
-    vwidth2_lst = [0.15]
-    vwidth1_lst = [0.12,0.13,0.135,0.14,0.145,0.15,0.155,0.16]
+    bw_lst = [0.0025,0.003,0.0035,0.004,0.0045,0.005]
+    smoothness_lst = [10**-22]
+    vwidth1_lst = [0.145]
+    vwidth2_lst = [0.145]
     vcenter_lst = [1.073649114]
     for s in smoothness_lst:
         print("smoothness=",s)
@@ -186,8 +188,8 @@ def param_analysis(folders, param): #param-'CV' or 'T-Test'
 if __name__ == '__main__':
     #folderpath to analyze
     #stats_log_recenter_0.004_1e-22_1.073649114_0.135
-    foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_19_SOD4',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_28/2023_04_03_SOD2/S4']
+    foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_19_SOD4',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S4']
                 #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_27/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_27/2023_05_17_SAL2/SAL',
     #foldersB =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_08_Buffer1/ph6txt',
                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_08_Buffer1/ph7txt',
