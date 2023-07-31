@@ -64,7 +64,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, smoothness_param, vcente
                 (peak_signal, peak_v, vg_df) = vg2signal.v2signal(filename,
                        do_log,
                        smoothing_bw,
-                       vcenter,
+                       vcenter2,
                        vwidth2,
                        smoothness_param)
             print(filename)
