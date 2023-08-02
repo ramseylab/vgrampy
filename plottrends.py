@@ -41,7 +41,7 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 			ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
 		cnt +=1
 	ax1.set_ylabel(stat)
-	ax1.xscale('log')
+	#ax1.xscale('log')
 	if stat == "CV":
 		ax1.set_ylim(0,0.80)
 	ax1.set_xlabel(xlabels[trend-1])
@@ -75,7 +75,7 @@ def plot_double_trend(pltn,folder,trend,zeros):
 		cnt+=1
 	ax2.tick_params(axis='y')
 	ax2.set_ylabel('T-Statistic')
-	ax1.set_xscale('log')
+	#ax1.set_xscale('log')
 	ax1.legend(bbox_to_anchor=(0, 1.14), loc='upper left',prop={'size': 7})
 	ax2.legend(bbox_to_anchor=(1, 1.14), loc='upper right',prop={'size': 7})
 	pltn.suptitle(titlename)
@@ -84,45 +84,61 @@ def plot_double_trend(pltn,folder,trend,zeros):
 def threeD_plot(folder,param1,param2,trend,zeros):
 	p1data = get_data(folder,param1,trend)
 	p2data = get_data(folder,param2,trend)
-	fig = plt.figure()
-	ax = fig.add_subplot(projection='3d')
+	#fig = plt.figure()
+	#ax = fig.add_subplot(projection='3d')
 	xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
 	titlename = folder[folder.rfind("/")+1:]
 	colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']
 	shapes = ['o','s','v','h','X']
 	cnt = 0
 	for key in p1data:
-		if ((key=="0.0\u03BCM") and (zeros==True)) or (key!="0.0\u03BCM"):
-			ax.plot(p1data[key][0],p1data[key][1],p2data[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
+		#if ((key=="0.0\u03BCM") and (zeros==True)) or (key!="0.0\u03BCM"):
+		if key == "15.0\u03BCM":
+			fig = plt.figure()
+			ax = plt.axes(projection='3d')
+			x = p1data[key][0]
+			y = p1data[key][1]
+			x, y = np.meshgrid(x,y)
+			#print(p2data[key][1])
+			z = np.array(p2data[key][:1])
+			#z = (np.sin(x **2) + np.cos(y **2) )
+
+			ax.set_zlabel(xlabels[param2-1])
+			ax.set_ylabel(trend)
+			ax.set_xlabel(xlabels[param1-1])
+			ax.set_title(titlename)
+			ax.plot_surface(x,y,z,cmap=plt.cm.coolwarm,label=key)
+			#ax.legend()
+			plt.show()
 		cnt +=1
-	ax.set_zlabel(trend)
-	ax.set_ylabel(xlabels[param2-1])
-	ax.set_xlabel(xlabels[param1-1])
-	ax.set_title(titlename)
-	plt.legend(bbox_to_anchor=(0, 1.15), loc='upper left',prop={'size': 7})
-	plt.show()
+	#ax.set_zlabel(trend)
+	#ax.set_ylabel(xlabels[param2-1])
+	#ax.set_xlabel(xlabels[param1-1])
+	#ax.set_title(titlename)
+	#plt.legend(bbox_to_anchor=(0, 1.15), loc='upper left',prop={'size': 7})
+	#plt.show()
 					
 
 if __name__ == '__main__':
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_19_SOD4',
                 #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S4',  
 	#]
-	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_06_19_Large3',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_19_SOD4',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S4',
-               ]
+	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_06_16_Large2']#, 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_06_19_Large3',
+                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_19_SOD4',
+               # 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S4',
+               #]
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/SAL']
 	#foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inSnoN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inS']
     #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S3']
 	tall = 0
 	wide = 0
-	param1 = 2 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
+	param1 = 4 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
 	param2 = 5
-	stat = 'both' #'CV' or 'T-Statistic' or both
+	stat = 'T-Statistic' #'CV' or 'T-Statistic' or both
 	zeros = True
 	#xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
 	
-	threeD=False
+	threeD=True
 	if not threeD:
 		talltotal = -(-len(foldersS)//3)
 		widetotal = 3
