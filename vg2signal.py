@@ -20,7 +20,7 @@ def get_args() -> argparse.Namespace:
     arg_parser.add_argument('--bw', type=float, default=0.02,
                             help="kernel smoothing bandwidth (V)")
     arg_parser.add_argument('--smooth', type=float, default=0.0000001,
-                            help="smoothed spline smoothness " +
+                            help="smoothed spline stiffness " +
                             "parameter (bigger is smoother)")
     arg_parser.add_argument('--vcenter', type=float, default=1.073649114,
                             help="specify the analyte peak voltage (V)")
@@ -112,18 +112,18 @@ def make_signal_getter(vstart: float,
     return signal_getter_func
 
 
-# smoothness: R-style smoothness parameter (non-negative)
+# stiffness: R-style stiffness parameter (non-negative)
 def make_detilter(vstart: float,
                   vend: float,
-                  smoothness: float) -> typing.Callable:
-    assert smoothness >= 0.0, \
-        "invalid smoothness parameter (should be " + \
-        f"greater than zero): {smoothness}"
+                  stiffness: float) -> typing.Callable:
+    assert stiffness >= 0.0, \
+        "invalid stiffness parameter (should be " + \
+        f"greater than zero): {stiffness}"
 
     def detilter_func(v: numpy.array, lis: numpy.array):
         v_out = numpy.logical_or(v < vstart, v > vend)
         lis_bg = csaps.csaps(v[v_out], lis[v_out], v,
-                             smooth=(1.0 / (1.0 + smoothness)))
+                             smooth=(1.0 / (1.0 + stiffness)))
         return lis - lis_bg
 
     return detilter_func
@@ -134,7 +134,7 @@ def v2signal(vg_filename: str,
              smoothing_bw: float,
              vcenter: float,
              vwidth: float,
-             smoothness_param: float):
+             stiffness: float):
 
     vg_df = read_raw_vg_as_df(vg_filename)
 
@@ -151,7 +151,7 @@ def v2signal(vg_filename: str,
 
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
 
-    detilter = make_detilter(vstart, vend, smoothness_param)
+    detilter = make_detilter(vstart, vend, stiffness)
     vg_df["detilted"] = detilter(vg_df["V"].to_numpy(),
                                  vg_df["smoothed"].to_numpy())
 
@@ -177,16 +177,16 @@ if __name__ == '__main__':
     assert smoothing_bw >= 0.0, "smoothing bandwidth must be " + \
         f"nonnegative: {smoothing_bw}"
 
-    smoothness_param = args.smooth
-    assert smoothness_param >= 0.0, "smoothness param must be " + \
-        f"nonnegative: {smoothness_param}"
+    stiffness = args.smooth
+    assert stiffness>= 0.0, "stiffnessmust be " + \
+        f"nonnegative: {stiffness}"
 
     (peak_signal, peak_v, vg_df) = v2signal(vg_filename,
                                             do_log,
                                             smoothing_bw,
                                             vcenter,
                                             vwidth,
-                                            smoothness_param)
+                                            stiffness)
 
     if peak_signal is not None:
         print(f"Peak voltage: {peak_v:0.3f} V")
@@ -197,7 +197,7 @@ if __name__ == '__main__':
                                                     smoothing_bw,
                                                     peak_v,
                                                     vwidth,
-                                                    smoothness_param)
+                                                    stiffness)
             if peak_signal is not None:
                 print(f"Recentered peak voltage: {peak_v:0.3f} V")
                 print(f"Recentered peak Signal: {peak_signal:0.3f} 1/V^2")
