@@ -41,6 +41,18 @@ def make_xlsx_str(do_log, recenter, smoothing_bw, stiffness, vcenter, vwidth1, v
     signal_return = "signal"+data_str
     return stats_return, signal_return
 
+def new_vwidth(vgdf):
+    v = vgdf["V"]
+    d = vgdf["detilted"]
+    no0first = next((i for i, j in enumerate(d) if j),None)
+    dr = reversed(d)
+    no0last = next((i for i, j in enumerate(dr) if j),None)
+    v1 = v[no0first]
+    v2 = v[len(d)-no0last-1]
+    vwnew = v2-v1
+    vcnew = v1+vwnew/2
+    return vcnew, vwnew
+
 ##run vg2 function from vg2signal.py
 ##run through each text file in folder
 ##save all peak signals into 'signals' file, save avg, std, cv, t-statistic in 'stats' file
@@ -53,6 +65,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
     conc_dict = dict() #[cbz concentration]: peak signals
     for filename in os.listdir():
         if filename[-3:] == 'txt':
+            print("Analyzing: ", filename)
             (peak_signal, peak_v, vg_df) = vg2signal.v2signal(filename,
                        do_log,
                        smoothing_bw,
@@ -63,13 +76,15 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
                 vcenter2= peak_v
                 if vcenter2 == None:
                     vcenter2 = vcenter
+                #vcenter2, vwidth2 = new_vwidth(vg_df)
                 (peak_signal, peak_v, vg_df) = vg2signal.v2signal(filename,
                        do_log,
                        smoothing_bw,
                        vcenter2,
                        vwidth2,
                        stiffness_param)
-            print(filename)
+            print(list(vg_df["V"]))
+            print(list(vg_df["detilted"]))
             idx1 = filename.rfind("cbz")
             idx2 = filename[idx1:].find("_")
             conc = filename[idx1+3:idx1+idx2]
@@ -80,7 +95,10 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
             
             if peak_signal == None: #if find no peak
                 peak_signal = 0
-            signal_lst.append([filename, peak_signal, peak_v]) #add text filename & peak signal to signal list
+            #add text filename & peak signal to signal list
+            if peak_v == None:
+                peak_v = 0
+            signal_lst.append([filename, round(peak_signal,2), round(peak_v,3)])
             if conc in conc_dict.keys(): #for each concentration
                 conclst = conc_dict[conc]
                 conclst.append(peak_signal) #add peak signal to concentration dictionary
@@ -92,17 +110,17 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
     conc_list = []
     for key in conc_dict: #for each concentration
         val = conc_dict[key] #all the signals for conc
-        avgval = np.average(val) #avg signal for conc
-        stdval = np.std(val) #std of signals for conc
+        avgval = round(np.average(val),2) #avg signal for conc
+        stdval = round(np.std(val),2) #std of signals for conc
         if avgval != 0:
-            cvval = stdval/avgval
+            cvval = round(stdval/avgval,3)
         else:
             cvval = 0 #if average is 0, make CV 0
         concstr = str(float(key))+"\u03BCM"
         #compare signal list for this conc to no cbz
         if "00" in conc_dict.keys():
             zerolst = conc_dict["00"]
-            ttest = stats.ttest_ind(val,zerolst)[0]
+            ttest = round(stats.ttest_ind(val,zerolst)[0],2)
         else:
             ttest = 0
         conc_list.append([concstr,avgval,stdval,cvval,ttest]) #add stats for conc
@@ -127,9 +145,9 @@ def run_folderpath(folderpath, vcenter=1.073649114):
     #run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth)
     #change below to try different params
     bw_lst = [0.004]
-    stiffness_lst = [0, 10**-10, 10**-11, 10**-12, 10**-15, 10**-18, 10**-20, 10**-22, 10**-25]
-    vwidth1_lst = [0.14]
-    vwidth2_lst = [0.14]
+    stiffness_lst = [0]
+    vwidth1_lst = [0.16]
+    vwidth2_lst = [0.155999]
     vcenter_lst = [1.073649114]
     for s in stiffness_lst:
         print("stiffness=",s)
@@ -231,11 +249,12 @@ def condense_best(folderss, fbest,param):
 
 if __name__ == '__main__':
     #folderpath to analyze
+    foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_03/2023_04_19_SOD4']
     #stats_log_recenter_0.004_1e-22_1.073649114_0.135
-    foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_06_19_Large3',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_19_SOD4',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S4',
-               ]
+    #foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_06_19_Large3',
+                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_19_SOD4',
+                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S4',
+               #]
     #foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_09_SAL1/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_09_SAL1/SAL',]
     #foldersS =[#'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_19_SOD4',
                 #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S4',
@@ -251,10 +270,10 @@ if __name__ == '__main__':
                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_12_Buffer2/2',
                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_12_Buffer2/3']
     #just_analysis = input("Just param_analysis? (Y/N) ")
-    just_analysis = "Y"
+    just_analysis = "N"
     if just_analysis == "Y":
         bd=param_analysis(foldersS,'T-Statistic')
-        condense_best(foldersS, bd, 'T-Statistic')
+        #condense_best(foldersS, bd, 'T-Statistic')
         sys.exit()
 
     #run vg2 for each file in each folder in list SALIVA
