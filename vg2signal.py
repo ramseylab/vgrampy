@@ -143,7 +143,7 @@ def v2signal(vg_filename: str,
 
     if do_log:
         cur_var_name = "logI"
-        vg_df[cur_var_name] = numpy.log10(vg_df["I"])
+        vg_df[cur_var_name] = numpy.log2(vg_df["I"])
     else:
         cur_var_name = "I"
 
