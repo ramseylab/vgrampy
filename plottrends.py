@@ -46,6 +46,8 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 		ax1.set_ylim(0,0.80)
 	else:
 		ax1.set_ylim(0,9)
+	if trend == 2:
+		ax1.set_xscale('log')
 	ax1.set_xlabel(xlabels[trend-1])
 	ax1.set_title(titlename)
 	ax1.legend(bbox_to_anchor=(0, 1.15), loc='upper left',prop={'size': 7})
@@ -78,7 +80,8 @@ def plot_double_trend(pltn,folder,trend,zeros):
 	ax2.tick_params(axis='y')
 	ax2.set_ylabel('T-Statistic')
 	ax2.set_ylim(0,9)
-	ax1.set_xscale('log')
+	if trend == 2:
+		ax1.set_xscale('log')
 	ax1.legend(bbox_to_anchor=(0, 1.14), loc='upper left',prop={'size': 7})
 	ax2.legend(bbox_to_anchor=(1, 1.14), loc='upper right',prop={'size': 7})
 	pltn.suptitle(titlename)
@@ -126,16 +129,16 @@ if __name__ == '__main__':
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_19_SOD4',
                 #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S4',  
 	#]
-	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_03/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_03/2023_06_19_Large3',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_03/2023_04_19_SOD4',
-               'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_03/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_03/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_03/2023_04_03_SOD2/S4',
+	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_06_19_Large3',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_19_SOD4',
+               'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_03_SOD2/S4',
                ]
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/SAL']
 	#foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inSnoN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inS']
     #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S3']
 	tall = 0
 	wide = 0
-	param1 = 2 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
+	param1 = 4 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
 	param2 = 5
 	stat = 'both' #'CV' or 'T-Statistic' or both
 	zeros = True
