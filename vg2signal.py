@@ -134,7 +134,8 @@ def v2signal(vg_filename: str,
              smoothing_bw: float,
              vcenter: float,
              vwidth: float,
-             stiffness: float):
+             stiffness: float,
+             logbase: float):
 
     vg_df = read_raw_vg_as_df(vg_filename)
 
@@ -143,7 +144,8 @@ def v2signal(vg_filename: str,
 
     if do_log:
         cur_var_name = "logI"
-        vg_df[cur_var_name] = numpy.log2(vg_df["I"])
+        vg_df[cur_var_name] = numpy.emath.logn(logbase, vg_df["I"])
+        #vg_df[cur_var_name] = numpy.log2(vg_df["I"])
     else:
         cur_var_name = "I"
 

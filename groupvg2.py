@@ -17,13 +17,14 @@ from statistics import mean
 import openpyxl
 import scipy.stats as stats
 import xlsxwriter
+import time
 
 ##make_xlsx_str
 ##creates parameter strings to save 'signal' and 'stats' files
 ##return: 'signal' and 'stats' filenames
-def make_xlsx_str(do_log, recenter, smoothing_bw, stiffness, vcenter, vwidth1, vwidth2):
+def make_xlsx_str(do_log, recenter, smoothing_bw, stiffness, vcenter, vwidth1, vwidth2, logbase):
     if do_log == True:   #if run with log-transform
-        log_str = "_log"
+        log_str = "_log"+str(logbase)
     else: #if not use log-transform
         log_str = "_NOlog"
     if recenter == True: #if run with double detilt/ recentering
@@ -57,9 +58,9 @@ def new_vwidth(vgdf):
 ##run vg2 function from vg2signal.py
 ##run through each text file in folder
 ##save all peak signals into 'signals' file, save avg, std, cv, t-statistic in 'stats' file
-def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth1, vwidth2):
+def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth1, vwidth2, logbase):
     #get filenames to save
-    stats_str, signal_str = make_xlsx_str(do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth1, vwidth2)
+    #stats_str, signal_str = make_xlsx_str(do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth1, vwidth2, logbase)
 
     os.chdir(folderpath) #change to desired folderpath
     signal_lst = []
@@ -72,7 +73,8 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
                        smoothing_bw,
                        vcenter,
                        vwidth1,
-                       stiffness_param)
+                       stiffness_param,
+                       logbase)
             if recenter:
                 vcenter2= peak_v
                 if vcenter2 == None:
@@ -83,7 +85,8 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
                        smoothing_bw,
                        vcenter2,
                        vwidth2,
-                       stiffness_param)
+                       stiffness_param,
+                       logbase)
             #print(list(vg_df["V"]))
             #print(list(vg_df["detilted"]))
             idx1 = filename.rfind("cbz")
@@ -129,6 +132,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
     conc_lst_sorted = sorted(conc_list, key=lambda x:float(x[0][:-2]))
     conc_df = pd.DataFrame(conc_lst_sorted)
     #save stats list to excel
+    stats_str, signal_str = make_xlsx_str(do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth1, vwidth2, logbase)
     conc_df.to_excel(stats_str, index=False, header=["conc","average","std","CV","T-Statistic"])
     signal_df.to_excel(signal_str, index=False, header=["file", "signal","peak V"]) #save signal list to excel
     
@@ -143,25 +147,29 @@ def run_folderpath(folderpath, vcenter=1.073649114):
     stiffness_param = 0.00000001 #stiffness param
     #vcenter = 1.073649114 #center for detilt window
     vwidth = 0.135 #detilt window width
+    logbase = 2
     #run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth)
     #change below to try different params
-    bw_lst = [0.004]
+    logbase_lst = [2,10]
+    bw_lst = [0.003,0.0035,0.004,0.0045]
     stiffness_lst = [0]
-    vwidth1_lst = [0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16]
-    vwidth2_lst = [0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16]
+    vwidth1_lst = [0.13,0.135,0.14,0.145,0.15,0.155,0.16]
+    vwidth2_lst = [0.13,0.135,0.14,0.145,0.15,0.155,0.16]
     vcenter_lst = [1.073649114]
     for s in stiffness_lst:
         print("stiffness=",s)
         #run_vg2(folderpath, do_log, recenter, smoothing_bw, s, vcenter, vwidth)
         for bw in bw_lst:
-            print("bw=",s)
+            print("bw=",bw)
             for w1 in vwidth1_lst:
                 print("width1=",w1)
                 for w2 in vwidth2_lst:
                     print("width2=",w2)
                     for c in vcenter_lst:
                         print("vcenter=",c)
-                        run_vg2(folderpath, do_log, recenter, bw, s, c, w1,w2)
+                        for b in logbase_lst:
+                            print("logbase=",b)
+                            run_vg2(folderpath, do_log, recenter, bw, s, c, w1,w2,b)
     
 
 def param_analysis(folders, param): #param-'CV' or 'T-Statistic'
@@ -197,18 +205,12 @@ def param_analysis(folders, param): #param-'CV' or 'T-Statistic'
                     else: #if conc NOT in dict
                         best[conc] = [filepath,pval,psignal,cvval,tsval] #save initial path & param val
             big_best[folder]=best
-        #best_df = best_df.T
-        #best_df.to_excel("best_stats.xlsx", index=False, header=["file", param, "Average Signal"])
         #print("Parameters for Best {}".format(param))
         #for key in best:
             #if key != "0.0\u03BCM":
             #print(key)
             #print(best[key]) 
     return big_best
-    #print("Parameters for Best {}".format(param))
-    #for key in best:
-        #print(key)
-        #print(best[key])
 
 def split_str(fn):
     fnsplit = fn.split("_")
@@ -225,9 +227,8 @@ def split_str(fn):
     return foldern, log, recenter, bw, stiff, vcenter, vwidth1, vwidth2
 
 def get_params(d):
-    #fpsplit = fp.split("_")
-    #print("in get params")
-    #dfb = pd.DataFrame(columns=['conc','averagesignal','CV','T-Statistic','log', 'recenter', 'bw','stiffness','vcenter','vwidth1','vwidth2'])
+    dfb = pd.DataFrame(columns=["conc",'avgsignal','CV','T-Statistic','log', 'recenter', 'bw','stiffness','vcenter','vwidth1','vwidth2'])
+    #dfb = pd.DataFrame()
     for conc in d:
         #print(conc)
         #print(d[conc])
@@ -244,7 +245,6 @@ def get_params(d):
             vwidth2 = []
             for fn in fns:
                 foldernn, logn, recentern, bwn, stiffn, vcentern, vwidth1n, vwidth2n = split_str(fn)
-                #foldern.append(foldernn)
                 log.append(logn)
                 recenter.append(recentern)
                 bw.append(bwn)
@@ -253,10 +253,12 @@ def get_params(d):
                 vwidth1.append(vwidth1n)
                 vwidth2.append(vwidth2n)
             foldern = foldernn
-        #dfb.name = foldern
-        dfb = pd.DataFrame(columns=[foldern,'avgsignal','CV','T-Statistic','log', 'recenter', 'bw','stiffness','vcenter','vwidth1','vwidth2'])
+        #print(dfb)
+        #dfb = pd.DataFrame(columns=["conc",'avgsignal','CV','T-Statistic','log', 'recenter', 'bw','stiffness','vcenter','vwidth1','vwidth2'])
+        #print(dfb)
         dfb.loc[len(dfb.index)] = [conc, psignal, cvval, tsval,  log, recenter, bw, stiff, vcenter, vwidth1, vwidth2]
-    
+    #dfb.rename({"conc":str(foldern)}, axis='columns')
+    dfb.columns = [foldern,'avgsignal','CV','T-Statistic','log', 'recenter', 'bw','stiffness','vcenter','vwidth1','vwidth2']
     return dfb
                 
         
@@ -267,45 +269,26 @@ def condense_best(folderss, fbest,param):
     os.chdir(folderss[0])
     os.chdir("..")
     cwd = os.getcwd()
-    #bestdir = "best_stats.xlsx"
-    #writer = pd.ExcelWriter(os.path.join(cwd, "best_stats.xlsx"), engine='openpyxl', mode='a',if_sheet_exists='overlay')
-    #wbook = writer.book
-    #wst = wbook.add_worksheet("sheet")
-    #writer.sheets['Stats'] = wst
     start = 0
-    #cnt = 1
     excel_path = os.path.join(cwd, "best_stats.xlsx")
     for fn in fbest:
         f= fbest[fn]
         dfn = get_params(f)
-        #dfn.to_excel("best_stats.xlsx",index=False)
-        #print(type(dfn))
-        #print(datan)
-        #dfn = pd.read_csv(datan)
-        #print(dfn)
-        #wst.write_string(start+4,0,dfn.name)
         if not os.path.exists(excel_path):
             dfn.to_excel(excel_path, sheet_name="Sheet1", index=False, engine='openpyxl')
         else:
             with pd.ExcelWriter(excel_path, engine='openpyxl', if_sheet_exists='overlay', mode='a') as writer: 
-                #writer.write_string(row=writer.sheets["Sheet1"].max_row, string=f)
-                
                 dfn.to_excel(writer,sheet_name="Sheet1",index=False,startrow=writer.sheets["Sheet1"].max_row,startcol=0)
-        #start += dfn.shape[0]+5
-        #cnt += 1
-    #writer.save()
-
-
-    #best_df.to_excel("best_stats.xlsx", index=False, header=["file", param, "Average Signal"])
 
 if __name__ == '__main__':
+    start_time = time.time()
     #folderpath to analyze
-    #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_03/2023_04_19_SOD4']
+    #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_08/2023_06_16_Large2']
     #stats_log_recenter_0.004_1e-22_1.073649114_0.135
-    foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_06_19_Large3',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_19_SOD4',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_03_SOD2/S4',
-               ]
+    foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_08/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_08/2023_06_19_Large3',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_08/2023_04_19_SOD4',
+               'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_08/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_08/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_08/2023_04_03_SOD2/S4',
+              ]
     #foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_09_SAL1/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_09_SAL1/SAL',]
     #foldersS =[#'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_19_SOD4',
                 #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S4',
@@ -321,7 +304,7 @@ if __name__ == '__main__':
                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_12_Buffer2/2',
                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_12_Buffer2/3']
     #just_analysis = input("Just param_analysis? (Y/N) ")
-    just_analysis = "Y"
+    just_analysis = "N"
     if just_analysis == "Y":
         bd=param_analysis(foldersS,'CV')
         condense_best(foldersS, bd, 'CV')
@@ -333,4 +316,7 @@ if __name__ == '__main__':
         run_folderpath(folder)
 
     #analyze for best parameters
-    param_analysis(foldersS,'CV')
+    bd=param_analysis(foldersS,'CV')
+    condense_best(foldersS, bd, 'CV')
+    totaltime = time.time()-start_time
+    print("Total Time: ",totaltime)
