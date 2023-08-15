@@ -145,11 +145,11 @@ def run_folderpath(folderpath, vcenter=1.073649114):
     #run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth)
     #change below to try different params
     logbase_lst = [2]
-    bw_lst = [0.000125,0.00025,0.0005,0.001,0.0015,0.002,0.0025,0.003,0.0035]
+    bw_lst = [0.0001,0.000335,0.0000675,0.000125,0.00025,0.0005,0.001,0.0015,0.002,0.0025,0.003,0.0035]
     stiffness_lst = [0]
-    vwidth1_lst = [0.14] #[0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16]
-    vwidth2_lst = [0.14] #[0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16]
-    vcenter_lst = [1.073649114]
+    vwidth1_lst = [0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16]
+    vwidth2_lst = [0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16]
+    vcenter_lst = [1.00]
     for s in stiffness_lst:
         print("stiffness=",s)
         #run_vg2(folderpath, do_log, recenter, smoothing_bw, s, vcenter, vwidth)
@@ -318,7 +318,7 @@ def param_analysis(folders, param): #param-'CV' or 'T-Statistic'
                     tsval = df["T-Statistic"][i] #get parameter value (CV or T-Statistic)
                     pval = df[param][i]
                     psignal = df['average'][i] #get average signal
-                    filepath = folder+"_"+fn
+                    filepath = folder+"/"+fn
                     #print("OLD FILEPATH: ", filepath)
                     if conc in best.keys(): #if conc already in dict
                         oldpval = best[conc][1]
@@ -344,17 +344,18 @@ def param_analysis(folders, param): #param-'CV' or 'T-Statistic'
     return big_best
 
 def split_str(fn):
+    folderfn = fn[fn.rfind("/")]
     fnsplit = fn.split("_")
     print(fnsplit)
-    log = fnsplit[5]
-    recenter = fnsplit[6]
-    bw = fnsplit[7]
-    stiff = fnsplit[8]
-    vcenter = fnsplit[9]
-    vwidth1 = fnsplit[10]
+    log = fnsplit[1]
+    recenter = fnsplit[2]
+    bw = fnsplit[3]
+    stiff = fnsplit[4]
+    vcenter = fnsplit[5]
+    vwidth1 = fnsplit[6]
     #print(fnsplit[11])
-    vwidth2 = fnsplit[11][:-5]
-    foldern = fnsplit[4][:-5]
+    vwidth2 = fnsplit[7][:-5]
+    foldern = fnsplit[0][:-5]
     return foldern, log, recenter, bw, stiff, vcenter, vwidth1, vwidth2
 
 def get_params(d):
@@ -399,7 +400,7 @@ def condense_best(folderss, fbest,param):
     excel_path = os.path.join(cwd, "best_stats.xlsx")
     for fn in fbest:
         f= fbest[fn]
-        print("F IN FBEST:",f)
+        #print("F IN FBEST:",f)
         dfn = get_params(f)
         if not os.path.exists(excel_path):
             dfn.to_excel(excel_path, sheet_name="Sheet1", index=False, engine='openpyxl')
@@ -428,11 +429,16 @@ if __name__ == '__main__':
     #folderpath to analyze
     #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_08/2023_06_16_Large2']
     #stats_log_recenter_0.004_1e-22_1.073649114_0.135
-    foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_19_SOD4']
-    #foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_06_19_Large3',
-                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_19_SOD4',
-               #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_03_SOD2/S4',
-              #]
+    #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0',
+                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p05',
+               # 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p075',
+               # 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p1',
+              #  'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p25',
+               # 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p5']
+    foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_06_19_Large3',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_19_SOD4',
+               'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_03_SOD2/S4',
+              ]
     #foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_09_SAL1/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_09_SAL1/SAL',]
     #foldersS =[#'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_19_SOD4',
                 #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_02/2023_04_03_SOD2/S4',
@@ -448,12 +454,12 @@ if __name__ == '__main__':
                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_12_Buffer2/2',
                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_26_firstvwidth/2023_06_12_Buffer2/3']
     #just_analysis = input("Just param_analysis? (Y/N) ")
-    just_analysis = "Y"
+    just_analysis = "N"
     if just_analysis == "Y":
-        #bd=param_analysis(foldersS,'CV')
-        bd = get_best(foldersS,'CV')
-        condense_best3(foldersS, bd, 'CV')
-        #condense_best(foldersS, bd, 'CV')
+        bd=param_analysis(foldersS,'CV')
+        #bd = get_best(foldersS,'CV')
+        #condense_best3(foldersS, bd, 'CV')
+        condense_best(foldersS, bd, 'CV')
         sys.exit()
 
     #run vg2 for each file in each folder in list SALIVA
