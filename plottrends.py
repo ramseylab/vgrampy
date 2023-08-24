@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import openpyxl
 import os
+import vg2signal
+import sys
 from mpl_toolkits.mplot3d import Axes3D
 
 def get_data(folder, trend, stat):
@@ -123,16 +125,39 @@ def threeD_plot(folder,param1,param2,trend,zeros):
 	#ax.set_title(titlename)
 	#plt.legend(bbox_to_anchor=(0, 1.15), loc='upper left',prop={'size': 7})
 	#plt.show()
+
+def plotraw(folders):
+	colors = ['tab:orange', 'tab:blue', 'tab:green', 'tab:red', 'tab:purple']
+	cnt = 0
+	for folder in folders:
+		os.chdir(folder)
+		for fn in os.listdir():  # for each 'stats' excel file in folder
+			if fn[-3:] == "txt":
+				underlines = fn.split("_")
+				cbzamt = underlines[-2][-2:]
+				print(cbzamt)
+				if cbzamt == "15":
+					print("in")
+					vgdf = vg2signal.read_raw_vg_as_df(str(fn))
+					plt.plot(vgdf["V"], vgdf["I"], color = colors[cnt])
+		cnt += 1
+	plt.title("Raw Voltammogram")
+	plt.xlabel("Potential (V)")
+	plt.ylabel("Current (\u03BCM)")
+	plt.show()
+
 					
 
 if __name__ == '__main__':
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_19_SOD4',
                 #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S4',  
 	#]
-	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_06_16_Large2', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_06_19_Large3',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_19_SOD4',
-               'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_05/2023_04_03_SOD2/S4',
-               ]
+	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0',
+	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p025',
+	foldersS =[
+	'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p050',
+	'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p100',
+	 'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p200']
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/SAL']
 	#foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inSnoN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inS']
     #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S3']
@@ -143,6 +168,12 @@ if __name__ == '__main__':
 	stat = 'both' #'CV' or 'T-Statistic' or both
 	zeros = True
 	#xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
+	groupraw = True
+
+	if groupraw:
+		plotraw(foldersS)
+		sys.exit()
+
 	
 	threeD=False
 	if not threeD:
