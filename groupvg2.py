@@ -127,7 +127,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
     signal_df.to_excel(signal_str, index=False, header=["file", "signal", "peak V"])  # save signal list to excel
 
 
-def run_folderpath(folderpath, vcenter=1.073649114):
+def run_folderpath(folderpath, vcenter):
     if not os.path.exists(folderpath):  # if folderpath does not exist
         sys.exit("Error: invalid file path")  # exit
 
@@ -136,11 +136,11 @@ def run_folderpath(folderpath, vcenter=1.073649114):
     # run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth)
     # change below to try different params
     logbase_lst = [2]
-    bw_lst = [0.0001, 0.000335, 0.0000675, 0.000125, 0.00025, 0.0005, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035]
-    stiffness_lst = [0]
-    vwidth1_lst = [0.14]#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
-    vwidth2_lst = [0.14]#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
-    vcenter_lst = [1.073649114]
+    bw_lst = np.arange(0.0001,0.01,0.0001)
+    stiffness_lst = np.arange(0,0.001,0.0001)
+    vwidth1_lst = np.arange(0.13,0.18,0.001)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
+    vwidth2_lst = np.arange(0.13,0.18,0.001)
+    vcenter_lst = np.arange(1.00,1.08,0.005)
     for s in stiffness_lst:
         print("stiffness=", s)
         # run_vg2(folderpath, do_log, recenter, smoothing_bw, s, vcenter, vwidth)
@@ -317,7 +317,7 @@ def param_analysis(folders, param):  # param-'CV' or 'T-Statistic'
                     if conc in best.keys():  # if conc already in dict
                         oldpval = best[conc][1]
                         oldpsignal = best[conc][2]
-                        if oldpval > pval:  # if this param val better than best
+                        if oldpval > pval and pval != 0:  # if this param val better than best
                             best[conc] = [filepath, pval, psignal, cvval,
                                           tsval]  # reassign dict values (filepath, param value)
                         elif oldpval == pval:  # if param val the saem as best
@@ -435,30 +435,31 @@ if __name__ == '__main__':
     # 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p1',
     #  'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p25',
     # 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p5']
-    foldersS = ['C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_06_16_Large2',
-                'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_06_19_Large3',
-                'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_19_SOD4',
-                'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_03_SOD2/S1',
-                'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_03_SOD2/S2',
-                'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/2023_04_03_SOD2/S4',
+    foldersS = [('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_06_12_Buffer2',1.014),
+                ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_09_12_Large5',1.043),
+                ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_09_19_Large7',1.044)
+                ]
+    folders = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_06_12_Buffer2',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_09_12_Large5',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_09_19_Large7'
                 ]
     just_analysis = "N"
     if just_analysis == "Y":
-        bd = param_analysis(foldersS, 'CV')
+        bd = param_analysis(folders, 'CV')
         print(bd)
         # bd = get_best(foldersS,'CV')
         # condense_best3(foldersS, bd, 'CV')
-        condense_best(foldersS, bd, 'CV')
+        condense_best(folders, bd, 'CV')
         sys.exit()
 
     # run vg2 for each file in each folder in list SALIVA
-    for folder in foldersS:
+    for folder, vc in foldersS:
         print("Processing: " + folder)
-        run_folderpath(folder)
+        run_folderpath(folder, vc)
 
     # analyze for best parameters
-    bd = param_analysis(foldersS, 'CV')
+    bd = param_analysis(folders, 'CV')
     # bd = get_best(foldersS,'CV')
-    condense_best(foldersS, bd, 'CV')
+    condense_best(folders, bd, 'CV')
     totaltime = time.time() - start_time
     print("Total Time: ", totaltime)

@@ -154,22 +154,21 @@ if __name__ == '__main__':
 	#]
 	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0',
 	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p025',
-	foldersS =[
-	'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p050',
-	'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p100',
-	 'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p200']
+	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMES2/0/2023_06_12_Buffer2',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMES2/0/2023_09_12_Large5',
+                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMES2/0/2023_09_19_Large7'
+                ]
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/SAL']
 	#foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inSnoN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inS']
     #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S3']
 	tall = 0
 	wide = 0
-	param1 = 4 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
+	param1 = 2 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
 	param2 = 5
 	stat = 'both' #'CV' or 'T-Statistic' or both
 	zeros = True
 	#xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
-	groupraw = True
-
+	groupraw = False
 	if groupraw:
 		plotraw(foldersS)
 		sys.exit()
