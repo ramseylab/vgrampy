@@ -125,7 +125,7 @@ def make_inf_getter(vstart: float,
         # we are looking for a local minimum of the first derivative between
         # vstart and vend
         spl_mdl_dd = spline_model.derivative(n=2)
-        spl_mdl_dd_pred = list(map(spl_mdl_dd, v[v_in]))
+        spl_mdl_dd_pred = spl_mdl_dd(v[v_in])  # list(map(spl_mdl_dd, v[v_in]))
         spl_mdl_dd_b = scipy.interpolate.splrep(v[v_in],
                                                 spl_mdl_dd_pred)
         spl_mdl_dd_ppoly = scipy.interpolate.PPoly.from_spline(spl_mdl_dd_b)
