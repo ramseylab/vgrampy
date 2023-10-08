@@ -40,7 +40,7 @@ def get_args() -> argparse.Namespace:
                             help="specify the width of the analyte peak (V)")
     arg_parser.add_argument('--findCenter',
                             default=None,
-                            choices=['peak', 'inf'],
+                            choices=['peak', 'inf', 'shoulder'],
                             dest='find_center',
                             help="specify a method to be used to find the"
                                  " analyte 'peak' voltage without detilting")
@@ -142,6 +142,36 @@ def make_inf_getter(vstart: float,
     return inf_getter_func
 
 
+def make_shoulder_getter(vstart: float,
+                         vend: float) -> typing.Callable:
+    def shoulder_getter_func(v: numpy.array,
+                             lisd: numpy.array):
+        v_in = numpy.logical_and(v >= vstart, v <= vend)
+        spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
+                                                          lisd[v_in],
+                                                          s=0,
+                                                          k=3)
+
+        v_peak = None
+        # we are looking for a local minimum of the first derivative between
+        # vstart and vend
+        spl_mdl_ddd = spline_model.derivative(n=3)
+        spl_mdl_ddd_pred = spl_mdl_ddd(v[v_in])
+        spl_mdl_ddd_b = scipy.interpolate.splrep(v[v_in],
+                                                 spl_mdl_ddd_pred)
+        spl_mdl_ddd_ppoly = scipy.interpolate.PPoly.from_spline(spl_mdl_ddd_b)
+        roots_ddd = spl_mdl_ddd_ppoly.roots(extrapolate=False)
+        if len(roots_ddd) == 1:
+            v_peak = float(roots_ddd[0])
+        elif len(roots_ddd) > 1:
+            print(f"NOTE: more than one shoulder point found: {roots_ddd} V")
+            v_peak = roots_ddd
+        else:
+            print("WARNING: no roots found")
+        return (None, v_peak)
+    return shoulder_getter_func
+
+
 def make_signal_getter(vstart: float,
                        vend: float) -> typing.Callable:
     def signal_getter_func(v: numpy.array,
@@ -222,7 +252,10 @@ def v2signal(vg_filename: str,
             inf_getter = make_inf_getter(vstart, vend)
             (peak_signal, peak_v) = inf_getter(vg_df["V"],
                                                vg_df["smoothed"])
-            # handle inflection here
+        elif find_center == 'shoulder':
+            shoulder_getter = make_shoulder_getter(vstart, vend)
+            (peak_signal, peak_v) = shoulder_getter(vg_df["V"],
+                                                    vg_df["smoothed"])
         else:
             assert False, f"Invalid find_center value: {find_center}"
     else:
