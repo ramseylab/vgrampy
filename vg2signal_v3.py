@@ -119,6 +119,7 @@ def make_inf_getter(vstart: float,
         v_in = numpy.logical_and(v >= vstart, v <= vend)
         spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
                                                           lisd[v_in],
+                                                          s=0,
                                                           k=3)
 
         v_peak = None
