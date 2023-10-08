@@ -159,7 +159,7 @@ def make_signal_getter(vstart: float,
         spl_mdl_d_ppoly = scipy.interpolate.PPoly.from_spline(spl_mdl_d_b)
         roots_d = spl_mdl_d_ppoly.roots(extrapolate=False)
         spl_mdl_dd = numdifftools.Derivative(spline_model, n=2)
-        dd_at_roots = numpy.array(list(map(spl_mdl_dd, roots_d)))
+        dd_at_roots = spl_mdl_dd(roots_d)
         critical_point_v = None
         if len(dd_at_roots) > 0:
             ind_peak = numpy.argmin(dd_at_roots)
