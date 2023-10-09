@@ -92,6 +92,7 @@ def make_signal_getter(vstart: float,
         v_in = numpy.logical_and(v >= vstart, v <= vend)
         spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
                                                           lisd[v_in],
+                                                          s=0,
                                                           k=3)
         spline_model_d = spline_model.derivative(n=1)
         spline_model_d_ppoly = scipy.interpolate.splrep(v[v_in],

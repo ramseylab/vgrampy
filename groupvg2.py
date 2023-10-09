@@ -51,13 +51,29 @@ def new_vwidth(vgdf):
 def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth1, vwidth2, logbase):
     # get filenames to save
     # stats_str, signal_str = make_xlsx_str(do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth1, vwidth2, logbase)
-
+    #stevepeaks = [1.0825,1.0625,1.066,1.066,1.0625,1.072,1.055,1.063,1.073,1.077,1.0700,1.0780,1.069,1.0755,1.059,1.0695,1.0735,1.0695,1.06,1.074,1.0685,1.08,1.076,1.0665,1.077]
+    # myvcenters = [1.045, 1.035, 1.04, 1.04, 1.04, 1.05, 1.035, 1.045, 1.045, 1.05,
+    #                   1.04, 1.05, 1.045, 1.05, 1.035, 1.045, 1.045, 1.045, 1.045, 1.035, 1.045, 1.04, 1.05, 1.045,
+    #                   1.045, 1.05]
+    #cnt = 0
     os.chdir(folderpath)  # change to desired folderpath
     signal_lst = []
     conc_dict = dict()  # [cbz concentration]: peak signals
     for filename in os.listdir():
         if filename[-3:] == 'txt':
             print("Analyzing: ", filename)
+            #print("peakcenter: ", stevepeaks[cnt])
+            idx1 = filename.rfind("cbz")
+            idx2 = filename[idx1:].find("_")
+            conc = filename[idx1 + 3:idx1 + idx2]
+            #print(conc)
+            # vcenterold = vcenter
+            # if conc == '15':
+            #     cnt = int(filename[idx1+idx2+1:-4])
+            #     print(cnt)
+            #     vcenter = myvcenters[cnt-1]
+                #print("my vcente",vcenter)
+                #cnt+=1
             (peak_signal, peak_v, vg_df) = vg2signal.v2signal(filename,
                                                               do_log,
                                                               smoothing_bw,
@@ -77,10 +93,8 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
                                                                   vwidth2,
                                                                   stiffness_param,
                                                                   logbase)
+            #vcenter = vcenterold
 
-            idx1 = filename.rfind("cbz")
-            idx2 = filename[idx1:].find("_")
-            conc = filename[idx1 + 3:idx1 + idx2]
             if 'p' in conc:  # for 7p5 concentration
                 pi = conc.find('p')
                 conctemp = conc[:pi] + '.' + conc[pi + 1:]
@@ -136,11 +150,11 @@ def run_folderpath(folderpath, vcenter):
     # run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth)
     # change below to try different params
     logbase_lst = [2]
-    bw_lst = np.arange(0.0001,0.01,0.0001)
-    stiffness_lst = np.arange(0,0.001,0.0001)
-    vwidth1_lst = np.arange(0.13,0.18,0.001)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
-    vwidth2_lst = np.arange(0.13,0.18,0.001)
-    vcenter_lst = np.arange(1.00,1.08,0.005)
+    bw_lst = np.arange(0.0001,0.04,0.0001)
+    stiffness_lst = [0] #np.arange(0,0.001,0.0001)
+    vwidth1_lst = [0.185] #np.arange(0.13,0.18,0.001)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
+    vwidth2_lst = [0.185] #np.arange(0.13,0.18,0.001)
+    vcenter_lst = [vcenter]#np.arange(1.00,1.08,0.005)
     for s in stiffness_lst:
         print("stiffness=", s)
         # run_vg2(folderpath, do_log, recenter, smoothing_bw, s, vcenter, vwidth)
@@ -435,13 +449,9 @@ if __name__ == '__main__':
     # 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p1',
     #  'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p25',
     # 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/today/0p5']
-    foldersS = [('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_06_12_Buffer2',1.014),
-                ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_09_12_Large5',1.043),
-                ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_09_19_Large7',1.044)
+    foldersS = [('C:/Users/patri/Box/Fu Lab/Noel/CBZdata/BMES2/0/2023_09_19_Large7',1.044)
                 ]
-    folders = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_06_12_Buffer2',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_09_12_Large5',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMESbig/0/2023_09_19_Large7'
+    folders = ['C:/Users/patri/Box/Fu Lab/Noel/CBZdata/BMES2/0/2023_09_19_Large7'
                 ]
     just_analysis = "N"
     if just_analysis == "Y":
