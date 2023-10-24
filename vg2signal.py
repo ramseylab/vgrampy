@@ -70,6 +70,40 @@ def read_raw_vg_as_df(filename: str) -> pandas.DataFrame:
             axis=1,
             raw=True)
 
+def make_shoulder_getter(vstart: float,
+                         vend: float) -> typing.Callable:
+    def shoulder_getter_func(v: numpy.array,
+                             lisd: numpy.array):
+        v_in = numpy.logical_and(v >= vstart, v <= vend)
+        spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
+                                                          lisd[v_in],
+                                                          s=0,
+                                                          k=4)
+
+        v_peak = None
+        # we are looking for a local minimum of the third derivative between
+        # vstart and vend
+        spl_mdl_dd = spline_model.derivative(n=2)
+        spl_mdl_dd_pred = spl_mdl_dd(v[v_in])
+
+        spl_mdl_ddd = spline_model.derivative(n=3)
+        spl_mdl_ddd_pred = spl_mdl_ddd(v[v_in])
+        spl_mdl_ddd_b = scipy.interpolate.splrep(v[v_in],
+                                                 spl_mdl_ddd_pred)
+        spl_mdl_ddd_ppoly = scipy.interpolate.PPoly.from_spline(spl_mdl_ddd_b)
+        roots_ddd = spl_mdl_ddd_ppoly.roots(extrapolate=False)
+        if len(roots_ddd) == 1:
+            v_peak = float(roots_ddd[0])
+        elif len(roots_ddd) > 1:
+            minsecond = min(spl_mdl_dd_pred)
+            idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
+            vin = list(v[v_in])
+            v_peak = vin[idx]
+        else:
+            print("WARNING: no roots found")
+        return (None, v_peak)
+    return shoulder_getter_func
+
 
 def make_smoother(smoothing_bw: float) -> typing.Callable:
     kernel_estimator = skfda_hm.NadarayaWatsonHatMatrix(bandwidth=smoothing_bw)
@@ -140,9 +174,6 @@ def v2signal(vg_filename: str,
 
     vg_df = read_raw_vg_as_df(vg_filename)
 
-    vstart = vcenter - 0.5*vwidth
-    vend = vcenter + 0.5*vwidth
-
     if do_log:
         cur_var_name = "logI"
         vg_df[cur_var_name] = numpy.emath.logn(logbase, vg_df["I"])
@@ -152,6 +183,13 @@ def v2signal(vg_filename: str,
 
     smoother = make_smoother(smoothing_bw)
 
+     shoulder_getter = make_shoulder_getter(1,1.1)
+    (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],
+                                            vg_df["smoothed"])
+    vcenter = peak_v_shoulder
+    vstart = vcenter - 0.5*vwidth
+    vend = vcenter + 0.5*vwidth
+
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
 
     detilter = make_detilter(vstart, vend, stiffness)
@@ -160,8 +198,9 @@ def v2signal(vg_filename: str,
 
     signal_getter = make_signal_getter(vstart, vend)
     (peak_signal, peak_v) = signal_getter(vg_df["V"], vg_df["detilted"])
-    
-    return (peak_signal, peak_v, vg_df)
+    ymaxidx = numpy.argmax(vg_df["detilted"])
+
+    return (peak_signal, peak_v, vg_df, vcenter, vg_df["detilted"][ymaxidx])
 
 
 if __name__ == '__main__':

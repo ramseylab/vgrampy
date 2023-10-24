@@ -49,43 +49,28 @@ def new_vwidth(vgdf):
 ##run through each text file in folder
 ##save all peak signals into 'signals' file, save avg, std, cv, t-statistic in 'stats' file
 def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth1, vwidth2, logbase):
-    # get filenames to save
-    # stats_str, signal_str = make_xlsx_str(do_log, recenter, smoothing_bw, stiffness_param, vcenter, vwidth1, vwidth2, logbase)
-    #stevepeaks = [1.0825,1.0625,1.066,1.066,1.0625,1.072,1.055,1.063,1.073,1.077,1.0700,1.0780,1.069,1.0755,1.059,1.0695,1.0735,1.0695,1.06,1.074,1.0685,1.08,1.076,1.0665,1.077]
-    # myvcenters = [1.045, 1.035, 1.04, 1.04, 1.04, 1.05, 1.035, 1.045, 1.045, 1.05,
-    #                   1.04, 1.05, 1.045, 1.05, 1.035, 1.045, 1.045, 1.045, 1.045, 1.035, 1.045, 1.04, 1.05, 1.045,
-    #                   1.045, 1.05]
-    #cnt = 0
     os.chdir(folderpath)  # change to desired folderpath
     signal_lst = []
     conc_dict = dict()  # [cbz concentration]: peak signals
     for filename in os.listdir():
         if filename[-3:] == 'txt':
             print("Analyzing: ", filename)
-            #print("peakcenter: ", stevepeaks[cnt])
+
             idx1 = filename.rfind("cbz")
             idx2 = filename[idx1:].find("_")
             conc = filename[idx1 + 3:idx1 + idx2]
-            #print(conc)
-            # vcenterold = vcenter
-            # if conc == '15':
-            #     cnt = int(filename[idx1+idx2+1:-4])
-            #     print(cnt)
-            #     vcenter = myvcenters[cnt-1]
-                #print("my vcente",vcenter)
-                #cnt+=1
-            (peak_signal, peak_v, vg_df) = vg2signal.v2signal(filename,
-                                                              do_log,
-                                                              smoothing_bw,
-                                                              vcenter,
-                                                              vwidth1,
-                                                              stiffness_param,
-                                                              logbase)
+            (peak_signal, peak_v, vg_df, vcentershoulder, ph) = vg2signal.v2signal(filename,
+                                                                                    do_log,
+                                                                                    smoothing_bw,
+                                                                                    vcenter,
+                                                                                    vwidth1,
+                                                                                    stiffness_param,
+                                                                                    logbase)
             if recenter:
                 vcenter2 = peak_v
                 if vcenter2 == None:
                     vcenter2 = vcenter
-                # vcenter2, vwidth2 = new_vwidth(vg_df)
+
                 (peak_signal, peak_v, vg_df) = vg2signal.v2signal(filename,
                                                                   do_log,
                                                                   smoothing_bw,
@@ -93,7 +78,6 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness_param, vcenter
                                                                   vwidth2,
                                                                   stiffness_param,
                                                                   logbase)
-            #vcenter = vcenterold
 
             if 'p' in conc:  # for 7p5 concentration
                 pi = conc.find('p')
