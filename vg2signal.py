@@ -169,28 +169,30 @@ def v2signal(vg_filename: str,
              smoothing_bw: float,
              vcenter: float,
              vwidth: float,
-             stiffness: float,
-             logbase: float):
+             stiffness: float):
 
     vg_df = read_raw_vg_as_df(vg_filename)
 
     if do_log:
         cur_var_name = "logI"
-        vg_df[cur_var_name] = numpy.emath.logn(logbase, vg_df["I"])
-        #vg_df[cur_var_name] = numpy.log2(vg_df["I"])
+        #vg_df[cur_var_name] = numpy.emath.logn(logbase, vg_df["I"])
+        vg_df[cur_var_name] = numpy.log2(vg_df["I"])
     else:
         cur_var_name = "I"
 
     smoother = make_smoother(smoothing_bw)
 
-     shoulder_getter = make_shoulder_getter(1,1.1)
+    
+
+    vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
+
+    shoulder_getter = make_shoulder_getter(1,1.1)
     (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],
                                             vg_df["smoothed"])
+
     vcenter = peak_v_shoulder
     vstart = vcenter - 0.5*vwidth
     vend = vcenter + 0.5*vwidth
-
-    vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
 
     detilter = make_detilter(vstart, vend, stiffness)
     vg_df["detilted"] = detilter(vg_df["V"].to_numpy(),
