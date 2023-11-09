@@ -128,14 +128,14 @@ def run_folderpath(folderpath):
     if not os.path.exists(folderpath):  # if folderpath does not exist
         sys.exit("Error: invalid file path")  # exit
 
-    do_log = True  # log param
-    recenter = True  # double detilt/ recenter param
+    do_log = False  # log param
+    recenter = False  # double detilt/ recenter param
     # change below to try different params
     logbase_lst = [2]
-    bw_lst = [0.006,0.007,0.008]
-    stiffness_lst = [0, 0.0005,0.001] #np.arange(0,0.001,0.0001)
-    vwidth1_lst = [0.17,0.175,0.18] #np.arange(0.13,0.18,0.001)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
-    vwidth2_lst = [0.17,0.175,0.18]  #np.arange(0.13,0.18,0.001)
+    bw_lst = [0.007]
+    stiffness_lst = [0]
+    vwidth1_lst = [0.17] #np.arange(0.13,0.18,0.001)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
+    vwidth2_lst = [0.17]  #np.arange(0.13,0.18,0.001)
     vcenter_lst = [1.04]#np.arange(1.00,1.08,0.005)
     for s in stiffness_lst:
         print("stiffness=", s)
@@ -254,9 +254,7 @@ def condense_best(folderss, fbest, param):
 
 if __name__ == '__main__':
     start_time = time.time()
-    folders = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/shoulder_getter/10_31/noeltest1/2023_09_19_Large7',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/shoulder_getter/10_31/noeltest1/2023_06_19_Large3',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/shoulder_getter/10_31/noeltest1/2023_06_12_Buffer2',
+    folders = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/shoulder_getter/11_09/2023_06_12_Buffer2',
                 ]
     just_analysis = "N"
     if just_analysis == "Y":

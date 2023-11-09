@@ -100,6 +100,10 @@ def make_shoulder_getter(vstart: float,
             vin = list(v[v_in])
             v_peak = vin[idx]
         else:
+            minsecond = min(spl_mdl_dd_pred)
+            idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
+            vin = list(v[v_in])
+            v_peak = vin[idx]
             print("WARNING: no roots found")
         return (None, v_peak)
     return shoulder_getter_func
@@ -124,25 +128,30 @@ def make_signal_getter(vstart: float,
     def signal_getter_func(v: numpy.array,
                            lisd: numpy.array):
         v_in = numpy.logical_and(v >= vstart, v <= vend)
+        print(list(v[v_in]))
+        print(list(lisd[v_in]))
         spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
                                                           lisd[v_in],
                                                           s=0,
-                                                          k=3)
+                                                          k=4)
         spline_model_d = spline_model.derivative(n=1)
         spline_model_d_ppoly = scipy.interpolate.splrep(v[v_in],
                                                         list(map(spline_model_d,
-                                                                 v[v_in])), k=3)
+                                                                 v[v_in])), k=4)
         roots_d = scipy.interpolate.PPoly.from_spline(spline_model_d_ppoly).roots(extrapolate=False)
         spline_model_dd = numdifftools.Derivative(spline_model, n=2)
         dd_at_roots = numpy.array(list(map(spline_model_dd, roots_d)))
         critical_point_v = None
         if len(dd_at_roots) > 0:
+            print(dd_at_roots)
             ind_peak = numpy.argmin(dd_at_roots)
             if dd_at_roots[ind_peak] < 0:
+                print("negative")
                 critical_point_v = roots_d[ind_peak]
         signal = None
         if critical_point_v is not None:
             signal = -dd_at_roots[ind_peak]
+        print(signal)
         return (signal, critical_point_v)
     return signal_getter_func
 
