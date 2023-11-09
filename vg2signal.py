@@ -128,8 +128,6 @@ def make_signal_getter(vstart: float,
     def signal_getter_func(v: numpy.array,
                            lisd: numpy.array):
         v_in = numpy.logical_and(v >= vstart, v <= vend)
-        print(list(v[v_in]))
-        print(list(lisd[v_in]))
         spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
                                                           lisd[v_in],
                                                           s=0,
@@ -143,15 +141,12 @@ def make_signal_getter(vstart: float,
         dd_at_roots = numpy.array(list(map(spline_model_dd, roots_d)))
         critical_point_v = None
         if len(dd_at_roots) > 0:
-            print(dd_at_roots)
             ind_peak = numpy.argmin(dd_at_roots)
             if dd_at_roots[ind_peak] < 0:
-                print("negative")
                 critical_point_v = roots_d[ind_peak]
         signal = None
         if critical_point_v is not None:
             signal = -dd_at_roots[ind_peak]
-        print(signal)
         return (signal, critical_point_v)
     return signal_getter_func
 
