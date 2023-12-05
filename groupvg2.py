@@ -132,10 +132,10 @@ def run_folderpath(folderpath):
     recenter = False  # double detilt/ recenter param
     # change below to try different params
     logbase_lst = [2]
-    bw_lst = [0.007]
+    bw_lst = [0.009]
     stiffness_lst = [0]
-    vwidth1_lst = [0.17] #np.arange(0.13,0.18,0.001)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
-    vwidth2_lst = [0.17]  #np.arange(0.13,0.18,0.001)
+    vwidth1_lst = [0.15]#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
+    vwidth2_lst = [0.15]  #np.arange(0.13,0.18,0.001)
     vcenter_lst = [1.04]#np.arange(1.00,1.08,0.005)
     for s in stiffness_lst:
         print("stiffness=", s)
@@ -254,7 +254,7 @@ def condense_best(folderss, fbest, param):
 
 if __name__ == '__main__':
     start_time = time.time()
-    folders = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/shoulder_getter/11_09/2023_06_12_Buffer2',
+    folders = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript/optimalparams2/2023_11_14_LowerConcs1',
                 ]
     just_analysis = "N"
     if just_analysis == "Y":

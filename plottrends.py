@@ -37,22 +37,27 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 	colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']
 	shapes = ['o','s','v','h','X']
 	cnt = 0
-	ax1 = pltn.subplots()
+	#ax1 = pltn.subplots()
+	ax1 = pltn
 	for key in gdict:
 		if ((key=="0.0\u03BCM") and (zeros==True)) or (key!="0.0\u03BCM"):
-			ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
+			if stat == 'T-Statistic':
+				ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],facecolors='none',marker=shapes[cnt])
+			else:
+				ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
 		cnt +=1
-	ax1.set_ylabel(stat)
+	ax1.set_ylabel("t-statistic", weight='bold', fontsize=15)
 	#ax1.xscale('log')
 	if stat == "CV":
-		ax1.set_ylim(0,0.80)
+		ax1.set_ylim(0,0.90)
 	else:
-		ax1.set_ylim(0,9)
+		ax1.set_ylim(-1,20)
 	if trend == 2:
 		ax1.set_xscale('log')
-	ax1.set_xlabel(xlabels[trend-1])
-	ax1.set_title(titlename)
-	ax1.legend(bbox_to_anchor=(0, 1.15), loc='upper left',prop={'size': 7})
+	ax1.set_xlabel('Stiffness', weight='bold', fontsize=15)
+	#ax1.set_title(titlename)
+	#ax1.legend(bbox_to_anchor=(0, 2), loc='upper right',prop={'size': 7})
+	ax1.legend(loc='center left',bbox_to_anchor=(0, 0.4),prop={'size': 14})
 	#plt.show()
 
 def plot_double_trend(pltn,folder,trend,zeros):
@@ -154,9 +159,7 @@ if __name__ == '__main__':
 	#]
 	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0',
 	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p025',
-	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMES2/0/2023_06_12_Buffer2',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMES2/0/2023_09_12_Large5',
-                'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/BMES2/0/2023_09_19_Large7'
+	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript/optimalparams2/stiffness',
                 ]
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/SAL']
 	#foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inSnoN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inS']
@@ -165,7 +168,7 @@ if __name__ == '__main__':
 	wide = 0
 	param1 = 2 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
 	param2 = 5
-	stat = 'both' #'CV' or 'T-Statistic' or both
+	stat = 'T-Statistic' #'CV' or 'T-Statistic' or both
 	zeros = True
 	#xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
 	groupraw = False
@@ -180,8 +183,9 @@ if __name__ == '__main__':
 		widetotal = 3
 		if talltotal < 2:
 			talltotal=2
-		fig = plt.figure(figsize=(15,10))
-		axs = fig.subfigures(talltotal,widetotal)
+		fig, axs = plt.subplots()
+		#fig = plt.figure(figsize=(15,10))
+		#axs = fig.subfigures(talltotal,widetotal)
 		
 	#fig.supxlabel(xlabels[param-1])
 	#fig.supylabel(stat)
@@ -192,7 +196,8 @@ if __name__ == '__main__':
 			if threeD:
 				threeD_plot(folder, param1, param2, stat, zeros)
 			else:
-				plot_trend(axs[tall,wide],folder, param1, stat, zeros)
+				#plot_trend(axs[tall,wide],folder, param1, stat, zeros)
+				plot_trend(axs,folder, param1, stat, zeros)
 				#plt.show()
 		else:
 			plot_double_trend(axs[tall,wide],folder,param1, zeros)
