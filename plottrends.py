@@ -35,29 +35,37 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 	xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
 	titlename = folder[folder.rfind("/")+1:]
 	colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']
-	shapes = ['o','s','v','h','X']
+	shapes = ['o','s','v','X']
 	cnt = 0
 	#ax1 = pltn.subplots()
 	ax1 = pltn
 	for key in gdict:
-		if ((key=="0.0\u03BCM") and (zeros==True)) or (key!="0.0\u03BCM"):
+		if ((key=="0.0 \u03BCM") and (zeros==True)) or (key!="0.0 \u03BCM"):
 			if stat == 'T-Statistic':
 				ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],facecolors='none',marker=shapes[cnt])
 			else:
 				ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
 		cnt +=1
-	ax1.set_ylabel("t-statistic", weight='bold', fontsize=15)
+
 	#ax1.xscale('log')
 	if stat == "CV":
 		ax1.set_ylim(0,0.90)
+		ax1.set_ylabel("CV", weight='bold', fontsize=15)
 	else:
 		ax1.set_ylim(-1,20)
+		ax1.set_ylabel("t-statistic", weight='bold', fontsize=15)
 	if trend == 2:
 		ax1.set_xscale('log')
-	ax1.set_xlabel('Stiffness', weight='bold', fontsize=15)
+		ax1.set_xlabel('Stiffness', weight='bold', fontsize=15)
+	elif trend == 4:
+		ax1.set_xlabel('Window Width', weight='bold', fontsize=15)
+	elif trend == 1:
+		ax1.set_xlabel('Smoothing', weight='bold', fontsize=15)
+
 	#ax1.set_title(titlename)
 	#ax1.legend(bbox_to_anchor=(0, 2), loc='upper right',prop={'size': 7})
-	ax1.legend(loc='center left',bbox_to_anchor=(0, 0.4),prop={'size': 14})
+	#ax1.legend(bbox_to_anchor=(0.3, 0.65),prop={'size': 13}) #tstat 0.7,0.65=top R,
+	ax1.legend(bbox_to_anchor=(0.3,0.65), prop={'size': 13})
 	#plt.show()
 
 def plot_double_trend(pltn,folder,trend,zeros):
@@ -71,7 +79,7 @@ def plot_double_trend(pltn,folder,trend,zeros):
 	shapes = ['o','s','v','h','X']
 	cnt = 0
 	for key in dictcv:
-		if (key=="0.0\u03BCM" and zeros) or key!="0.0\u03BCM":
+		if (key=="0.0 \u03BCM" and zeros) or key!="0.0 \u03BCM":
 			ax1.scatter(dictcv[key][0],dictcv[key][1],label=key+' CV',marker=shapes[cnt],facecolors='none',edgecolors=colors[cnt])
 		cnt+=1
 	ax1.tick_params(axis='y')
@@ -81,7 +89,7 @@ def plot_double_trend(pltn,folder,trend,zeros):
 	ax2=ax1.twinx()
 	cnt=0
 	for key in dictTT:
-		if key!="0.0\u03BCM":
+		if key!="0.0 \u03BCM":
 			ax2.scatter(dictTT[key][0],dictTT[key][1],label=key+' T-Statistic',marker=shapes[cnt],color=colors[cnt])
 		cnt+=1
 	ax2.tick_params(axis='y')
@@ -159,7 +167,7 @@ if __name__ == '__main__':
 	#]
 	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0',
 	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p025',
-	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript/optimalparams2/stiffness',
+	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript2/nolog/LC3/2023_12_12_LowConc3',
                 ]
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/SAL']
 	#foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inSnoN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inS']
@@ -168,7 +176,7 @@ if __name__ == '__main__':
 	wide = 0
 	param1 = 2 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
 	param2 = 5
-	stat = 'T-Statistic' #'CV' or 'T-Statistic' or both
+	stat = 'CV' #'CV' or 'T-Statistic' or both
 	zeros = True
 	#xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
 	groupraw = False

@@ -190,9 +190,9 @@ def v2signal(vg_filename: str,
 
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
 
-    shoulder_getter = make_shoulder_getter(1,1.1)
+    shoulder_getter = make_shoulder_getter(1, 1.1)
     (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],
-                                            vg_df["smoothed"])
+                                                     vg_df["smoothed"])
 
     vcenter = peak_v_shoulder
     vstart = vcenter - 0.5*vwidth
@@ -203,10 +203,10 @@ def v2signal(vg_filename: str,
                                  vg_df["smoothed"].to_numpy())
 
     signal_getter = make_signal_getter(vstart, vend)
-    (peak_signal, peak_v) = signal_getter(vg_df["V"], vg_df["detilted"])
+    (peak_signal_return, peak_v_return) = signal_getter(vg_df["V"], vg_df["detilted"])
     ymaxidx = numpy.argmax(vg_df["detilted"])
 
-    return (peak_signal, peak_v, vg_df, vcenter, vg_df["detilted"][ymaxidx])
+    return peak_signal_return, peak_v_return, vg_df, vcenter, vg_df["detilted"][ymaxidx]
 
 
 if __name__ == '__main__':
@@ -226,7 +226,7 @@ if __name__ == '__main__':
         f"nonnegative: {smoothing_bw}"
 
     stiffness = args.smooth
-    assert stiffness>= 0.0, "stiffnessmust be " + \
+    assert stiffness >= 0.0, "stiffness must be " + \
         f"nonnegative: {stiffness}"
 
     (peak_signal, peak_v, vg_df) = v2signal(vg_filename,
@@ -259,4 +259,3 @@ if __name__ == '__main__':
         plt.xlabel('baseline potential (V)')
         plt.ylabel('log peak current, normalized')
         plt.show()
-

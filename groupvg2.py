@@ -102,7 +102,7 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness, vcenter, vwid
             cvval = round(stdval / avgval, 3)
         else:
             cvval = 0  # if average is 0, make CV 0
-        concstr = str(float(key)) + "\u03BCM"
+        concstr = str(float(key)) + " \u03BCM"
         # compare signal list for this conc to no cbz
         if "00" in conc_dict.keys():
             zerolst = conc_dict["00"]
@@ -137,9 +137,9 @@ def run_folderpath(folderpath):
     recenter = False  # double detilt/ recenter param
     # change below to try different params
     logbase_lst = [2]
-    bw_lst = [0.007]
-    stiffness_lst = [0]
-    vwidth1_lst = [0.17]  # np.arange(0.13,0.18,0.001)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
+    bw_lst = [0.006]#np.arange(0.0001,0.01,0.0001)
+    stiffness_lst = np.arange(0,0.001,0.00005)
+    vwidth1_lst = [0.15] #np.arange(0.13,0.20,0.001)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
     vwidth2_lst = [0.17]  # np.arange(0.13,0.18,0.001)
     vcenter_lst = [1.04]  # np.arange(1.00,1.08,0.005)
     for s in stiffness_lst:
@@ -260,7 +260,8 @@ def condense_best(folderss, fbest, param):
 
 if __name__ == '__main__':
     start_time = time.time()
-    folders = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/shoulder_getter/11_09/2023_06_12_Buffer2',
+    folders = [
+               'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript2/nolog/LC3/2023_12_12_LowConc3',
                ]
     just_analysis = "N"
     if just_analysis == "Y":
