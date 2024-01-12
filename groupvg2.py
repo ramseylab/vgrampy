@@ -6,33 +6,43 @@ import pandas as pd
 import scipy.stats as stats
 import time
 
+"""
+make_xlsx_str
+- creates parameter strings to save 'signal' and 'stats' files
+- return: 'signal' and 'stats' filenames
+"""
 
-##make_xlsx_str
-##creates parameter strings to save 'signal' and 'stats' files
-##return: 'signal' and 'stats' filenames
+
 def make_xlsx_str(do_log, recenter, smoothing_bw, stiffness, vcenter, vwidth1, vwidth2):
-    if do_log == True:  # if run with log-transform
+    if do_log:  # if run with log-transform
         log_str = "_log"
     else:  # if not use log-transform
         log_str = "_NOlog"
-    if recenter == True:  # if run with double detilt/ recentering
+    if recenter:  # if run with double detilt/ recentering
         recenter_str = "_recenter"
     else:  # if not recentering
         recenter_str = "_NOrecenter"
 
-    smoothing_str = "_" + str(smoothing_bw)
-    stiffness_str = "_" + str(stiffness)
+    smooth_str = "_" + str(smoothing_bw)
+    stiff_str = "_" + str(stiffness)
     vcenter_str = "_" + str(vcenter)
     vwidth1_str = "_" + str(vwidth1)
     vwidth2_str = "_" + str(vwidth2)
     # combine all params into one string
-    data_str = log_str + recenter_str + smoothing_str + stiffness_str + vcenter_str + vwidth1_str + vwidth2_str + ".xlsx"
+    data_str = log_str + recenter_str + smooth_str + stiff_str + vcenter_str + vwidth1_str + vwidth2_str + ".xlsx"
     return data_str
 
 
-##run vg2 function from vg2signal.py
-##run through each text file in folder
-##save all peak signals into 'signals' file, save avg, std, cv, t-statistic in 'stats' file
+"""
+run_vg2
+- run vg2signal function from vg2signal.py
+- save all peak signals into 'signals' file, save avg, std, cv, t-statistic in 'stats' file
+- return: 
+    vg_df: dictionary of potential, raw, log, smoothed, & detilted data
+    data_str: string of parameters
+"""
+
+
 def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness, vcenter, vwidth1, vwidth2):
     # get filenames to save
     data_str = make_xlsx_str(do_log, recenter, smoothing_bw, stiffness, vcenter, vwidth1, vwidth2)
@@ -71,9 +81,9 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness, vcenter, vwid
                 dfxl = pd.concat([dfxl, pd.DataFrame(
                     [concxl, replicatexl, vg_df["V"], vg_df["I"], vg_df["smoothed"], vg_df["detilted"]]).transpose()])
 
-            if peak_signal == None:  # if find no peak
+            if peak_signal is None:  # if find no peak
                 peak_signal = 0
-            if peak_v == None:
+            if peak_v is None:
                 peak_v = 0
             signal_lst.append([filename, round(peak_signal, 2), round(peak_v, 3), round(vcentershoulder, 3),
                                ph])  # add text filename & peak signal to signal list
@@ -129,6 +139,12 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness, vcenter, vwid
     return vg_dict, data_str
 
 
+"""
+run_folderpath(folderpath: folder to run program)
+- runs all combinations of parameters through the vg2signal.py functions
+"""
+
+
 def run_folderpath(folderpath):
     if not os.path.exists(folderpath):  # if folderpath does not exist
         sys.exit("Error: invalid file path")  # exit
@@ -137,9 +153,9 @@ def run_folderpath(folderpath):
     recenter = False  # double detilt/ recenter param
     # change below to try different params
     logbase_lst = [2]
-    bw_lst = [0.006]#np.arange(0.0001,0.01,0.0001)
-    stiffness_lst = np.arange(0,0.001,0.00005)
-    vwidth1_lst = [0.15] #np.arange(0.13,0.20,0.001)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
+    bw_lst = np.arange(0.0001,0.01,0.005)
+    stiffness_lst = np.arange(0, 0.001, 0.001)
+    vwidth1_lst = np.arange(0.13,0.20,0.01)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
     vwidth2_lst = [0.17]  # np.arange(0.13,0.18,0.001)
     vcenter_lst = [1.04]  # np.arange(1.00,1.08,0.005)
     for s in stiffness_lst:
@@ -156,11 +172,18 @@ def run_folderpath(folderpath):
                         run_vg2(folderpath, do_log, recenter, bw, s, c, w1, w2)
 
 
-def param_analysis(folders, param):  # param-'CV' or 'T-Statistic'
+"""
+param_analysis(foldersanalysis: folders to analyze, param: parameter to determine 'best'
+- compares each combination of parameters based on 'param'
+- returns best combination of parameters, & their statistics
+"""
+
+
+def param_analysis(foldersanalysis, param):  # param-'CV' or 'T-Statistic'
     big_best = dict()
-    for folder in folders:  # for each folder in list
+    for folderi in foldersanalysis:  # for each folder in list
         best = dict()  # dictionary of best parameters
-        os.chdir(folder)
+        os.chdir(folderi)
 
         for fn in os.listdir():  # for each 'stats' excel file in folder
             if fn[:5] == "stats":
@@ -172,12 +195,12 @@ def param_analysis(folders, param):  # param-'CV' or 'T-Statistic'
                     tsval = df["T-Statistic"][i]  # get parameter value (CV or T-Statistic)
                     pval = df[param][i]
                     psignal = df['average'][i]  # get average signal
-                    filepath = folder + "/" + fn
+                    filepath = folderi + "/" + fn
 
                     if conc in best.keys():  # if conc already in dict
                         oldpval = best[conc][1]
                         oldpsignal = best[conc][2]
-                        if oldpval > pval and pval != 0:  # if this param val better than best
+                        if oldpval > pval != 0:  # if this param val better than best
                             best[conc] = [filepath, pval, psignal, cvval,
                                           tsval]  # reassign dict values (filepath, param value)
                         elif oldpval == pval:  # if param val the saem as best
@@ -190,13 +213,18 @@ def param_analysis(folders, param):  # param-'CV' or 'T-Statistic'
                             best[conc] = [oldfn, oldpval, oldpsignal, cvval, tsval]
                     else:  # if conc NOT in dict
                         best[conc] = [filepath, pval, psignal, cvval, tsval]  # save initial path & param val
-            big_best[folder] = best
+            big_best[folderi] = best
     return big_best
+
+
+"""
+split_str(fn: file name to split)
+returns: folder name, and parameters split up
+"""
 
 
 def split_str(fn):
     fnsplit = fn.split("_")
-    # print(fnsplit[-3])
     log = fnsplit[-7]
     recenter = fnsplit[-6]
     bw = fnsplit[-5]
@@ -208,10 +236,19 @@ def split_str(fn):
     return foldern, log, recenter, bw, stiff, vcenter, vwidth1, vwidth2
 
 
+"""
+get_params(d: dataframe)
+- get data for best parameters
+- return: dataframe for best parameters for each concentration
+"""
+
+
 def get_params(d):
     dfb = pd.DataFrame(
         columns=["conc", 'avgsignal', 'CV', 'T-Statistic', 'log', 'recenter', 'bw', 'stiffness', 'vcenter', 'vwidth1',
                  'vwidth2'])
+    foldern = None
+    foldernn = None
     for conc in d:
         fns, pval, psignal, cvval, tsval = d[conc]
         print("GETPARAMS: ", fns)
@@ -241,11 +278,16 @@ def get_params(d):
     return dfb
 
 
-def condense_best(folderss, fbest, param):
+"""
+condense_best(folderss: folder to analyze subfolders, fbest: dataframe of best parameters)
+- writes best parameters & their statistics to an excel file
+"""
+
+
+def condense_best(folderss, fbest):
     os.chdir(folderss[0])
     os.chdir("..")
     cwd = os.getcwd()
-    start = 0
     excel_path = os.path.join(cwd, "best_stats.xlsx")
     for fn in fbest:
         f = fbest[fn]
@@ -261,12 +303,14 @@ def condense_best(folderss, fbest, param):
 if __name__ == '__main__':
     start_time = time.time()
     folders = [
-               'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript2/nolog/LC3/2023_12_12_LowConc3',
-               ]
+        'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/noelbranchtest/2023_12_12_LowConc3',
+        'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/noelbranchtest/2023_12_15_LowConc4',
+        'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/noelbranchtest/2023_12_17_LowConc5',
+    ]
     just_analysis = "N"
     if just_analysis == "Y":
         bd = param_analysis(folders, 'CV')
-        condense_best(folders, bd, 'CV')
+        condense_best(folders, bd)
         sys.exit()
 
     # run vg2 for each file in each folder in list SALIVA
@@ -276,6 +320,6 @@ if __name__ == '__main__':
 
     # analyze for best parameters
     bd = param_analysis(folders, 'CV')
-    condense_best(folders, bd, 'CV')
+    condense_best(folders, bd)
     totaltime = time.time() - start_time
     print("Total Time: ", totaltime)
