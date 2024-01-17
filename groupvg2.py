@@ -116,12 +116,24 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness, vcenter, vwid
         # compare signal list for this conc to no cbz
         if "00" in conc_dict.keys():
             zerolst = conc_dict["00"]
-            ttest = round(stats.ttest_ind([val[0] for val in vals], [val[0] for val in zerolst])[0], 2)
+            ttest = round(stats.ttest_ind([val[0] for val in vals], [val[0] for val in zerolst], equal_var=False)[0], 2)
         else:
             ttest = 0
         conc_list.append([concstr, avgval, stdval, cvval, ttest, avgpeakval, stdpeakval])  # add stats for conc
 
     conc_lst_sorted = sorted(conc_list, key=lambda x: float(x[0][:-2]))
+
+    #calculate T-stat for all pairs of concs, add to conc_lst_sorted
+    #get all conc pairs without 0
+    pairslst = [(c1,c2) for idx, c1 in enumerate(list(conc_dict.keys()))
+                for c2 in list(conc_dict.keys())[idx+1:] if c1 != '00' and c2 != '00']
+
+    for c1, c2 in pairslst:
+        c1vals = conc_dict[c1]
+        c2vals = conc_dict[c2]
+        ttestn = round(stats.ttest_ind([val[0] for val in c2vals], [val[0] for val in c1vals], equal_var=False)[0], 2)
+        conc_lst_sorted.append(["T-Stat Pairs", str(float(c1)) + " \u03BCM", str(float(c2)) + " \u03BCM", ttestn])
+
     conc_df = pd.DataFrame(conc_lst_sorted)
     # save stats list to excel
     stats_str = "stats" + data_str
@@ -149,13 +161,13 @@ def run_folderpath(folderpath):
     if not os.path.exists(folderpath):  # if folderpath does not exist
         sys.exit("Error: invalid file path")  # exit
 
-    do_log = False  # log param
+    do_log = True  # log param
     recenter = False  # double detilt/ recenter param
     # change below to try different params
     logbase_lst = [2]
-    bw_lst = np.arange(0.0001,0.01,0.005)
-    stiffness_lst = np.arange(0, 0.001, 0.001)
-    vwidth1_lst = np.arange(0.13,0.20,0.01)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
+    bw_lst = [0.006] #np.arange(0.0001,0.01,0.005)
+    stiffness_lst = [0] #np.arange(0, 0.001, 0.001)
+    vwidth1_lst = [0.15]#np.arange(0.13,0.20,0.01)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
     vwidth2_lst = [0.17]  # np.arange(0.13,0.18,0.001)
     vcenter_lst = [1.04]  # np.arange(1.00,1.08,0.005)
     for s in stiffness_lst:
