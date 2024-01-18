@@ -102,6 +102,8 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness, vcenter, vwid
 
     signal_df = pd.DataFrame(signal_lst)
     conc_list = []
+    concs_targetlst = sorted([c for idx, c in enumerate(list(conc_dict.keys()))], key=lambda v: float(v))
+
     for key in conc_dict:  # for each concentration
         vals = conc_dict[key]  # all the signals for conc
         avgval = round(np.average([val[0] for val in vals]), 2)  # avg signal for conc
@@ -113,27 +115,16 @@ def run_vg2(folderpath, do_log, recenter, smoothing_bw, stiffness, vcenter, vwid
         else:
             cvval = 0  # if average is 0, make CV 0
         concstr = str(float(key)) + " \u03BCM"
-        # compare signal list for this conc to no cbz
-        if "00" in conc_dict.keys():
-            zerolst = conc_dict["00"]
-            ttest = round(stats.ttest_ind([val[0] for val in vals], [val[0] for val in zerolst], equal_var=False)[0], 2)
+        # compare signal list for this conc to closest lower conc
+        currentidx = concs_targetlst.index(key)
+        if currentidx == 0:
+            lowervals = conc_dict[key]
         else:
-            ttest = 0
+            lowervals = conc_dict[concs_targetlst[currentidx-1]]
+        ttest = round(stats.ttest_ind([val[0] for val in vals], [val[0] for val in lowervals], equal_var=False)[0], 2)
         conc_list.append([concstr, avgval, stdval, cvval, ttest, avgpeakval, stdpeakval])  # add stats for conc
 
     conc_lst_sorted = sorted(conc_list, key=lambda x: float(x[0][:-2]))
-
-    #calculate T-stat for all pairs of concs, add to conc_lst_sorted
-    #get all conc pairs without 0
-    pairslst = [(c1,c2) for idx, c1 in enumerate(list(conc_dict.keys()))
-                for c2 in list(conc_dict.keys())[idx+1:] if c1 != '00' and c2 != '00']
-
-    for c1, c2 in pairslst:
-        c1vals = conc_dict[c1]
-        c2vals = conc_dict[c2]
-        ttestn = round(stats.ttest_ind([val[0] for val in c2vals], [val[0] for val in c1vals], equal_var=False)[0], 2)
-        conc_lst_sorted.append(["T-Stat Pairs", str(float(c1)) + " \u03BCM", str(float(c2)) + " \u03BCM", ttestn])
-
     conc_df = pd.DataFrame(conc_lst_sorted)
     # save stats list to excel
     stats_str = "stats" + data_str
@@ -199,7 +190,6 @@ def param_analysis(foldersanalysis, param):  # param-'CV' or 'T-Statistic'
 
         for fn in os.listdir():  # for each 'stats' excel file in folder
             if fn[:5] == "stats":
-                print(fn)
                 df = pd.read_excel(fn)
                 for i in range(len(df[param])):  # for each concentration
                     conc = df['conc'][i]  # get concentration
