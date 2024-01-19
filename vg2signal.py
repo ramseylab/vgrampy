@@ -9,6 +9,7 @@ import skfda
 import csaps
 import matplotlib.pyplot as plt
 import numdifftools
+from sklearn import metrics
 
 
 def get_args() -> argparse.Namespace:
@@ -206,6 +207,8 @@ def v2signal(vg_filename: str,
     (peak_signal_return, peak_v_return) = signal_getter(vg_df["V"], vg_df["detilted"])
     ymaxidx = numpy.argmax(vg_df["detilted"])
 
+    peakarea = metrics.auc(vg_df["V"], vg_df["detilted"])*10000
+    #print("peakarea", peakarea)
     return peak_signal_return, peak_v_return, vg_df, vcenter, vg_df["detilted"][ymaxidx]
 
 

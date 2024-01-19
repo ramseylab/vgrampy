@@ -39,10 +39,15 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 	cnt = 0
 	#ax1 = pltn.subplots()
 	ax1 = pltn
+	concs_targetlst = sorted([c for idx, c in enumerate(list(gdict.keys()))], key=lambda v: float(v[:-3]))
 	for key in gdict:
+
 		if ((key=="0.0 \u03BCM") and (zeros==True)) or (key!="0.0 \u03BCM"):
 			if stat == 'T-Statistic':
-				ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],facecolors='none',marker=shapes[cnt])
+				currentidx = concs_targetlst.index(key)
+				prevval = concs_targetlst[currentidx - 1]
+				labelname = key + " & " + prevval + " Samples"
+				ax1.scatter(gdict[key][0],gdict[key][1],label=labelname,color=colors[cnt],facecolors='none',marker=shapes[cnt])
 			else:
 				ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
 		cnt +=1
@@ -65,7 +70,7 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 	#ax1.set_title(titlename)
 	#ax1.legend(bbox_to_anchor=(0, 2), loc='upper right',prop={'size': 7})
 	#ax1.legend(bbox_to_anchor=(0.3, 0.65),prop={'size': 13}) #tstat 0.7,0.65=top R,
-	ax1.legend(bbox_to_anchor=(0.3,0.65), prop={'size': 13})
+	ax1.legend(prop={'size': 13})
 	#plt.show()
 
 def plot_double_trend(pltn,folder,trend,zeros):
@@ -167,17 +172,17 @@ if __name__ == '__main__':
 	#]
 	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0',
 	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p025',
-	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript2/nolog/LC3/2023_12_12_LowConc3',
+	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript3/heslog/LC3/smooth',
                 ]
 	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/SAL']
 	#foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inSnoN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inS']
     #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S3']
 	tall = 0
 	wide = 0
-	param1 = 2 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
+	param1 = 1 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
 	param2 = 5
-	stat = 'CV' #'CV' or 'T-Statistic' or both
-	zeros = True
+	stat = 'T-Statistic' #'CV' or 'T-Statistic' or both
+	zeros = False
 	#xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
 	groupraw = False
 	if groupraw:
