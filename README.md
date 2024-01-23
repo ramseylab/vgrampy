@@ -1,7 +1,7 @@
 # vgrampy
 
-### Author: Stephen Ramsey
-### Date: June 26, 2023
+### Author: Noel Lefevre (Adopted from Steven Ramsey)
+### Date: January 29, 2024
 
 Python tools for analyzing electrochemistry voltammograms. The script
 `vg2signal.py` processes a potentiostat voltammogram data file using a method
@@ -13,83 +13,69 @@ analyte peak).
 
 # Prerequisites for using this software
 
-- Python 3.9 (on Apple Silicon, it doesn't yet work on Python 3.11)
+- Python 3.9 (it doesn't yet work on Python 3.11)
 - `git`
-- `bash` shell
+- Coding Application/IDE
 
-So far, this software has only been tested on MacOS 12.6.5 on Apple M1. It has 
-not been tested on Windows/x86_64, Linux/x86_64, etc.
+So far, this software has only been tested on Windows11/x86_64. It has 
+not been tested on MacOS 12.6.5 on Apple M1, Linux/x86_64, etc.
 
-# How to install and run `vg2signal.py`:
+# How to install and run `groupvg2.py`:
 
-These instructions assume that you know how to use the bash shell (and modify
-your PATH if necessary), and that you are in an interactive bash session
+1. Download Python 3.9 (can be 3.9.0-3.9.12)
+   1. make sure to select `Add Python 3.9 to PATH`
 
-1. Clone the software repo
+
+2. Download a coding application/IDE (i.e. VisualStudio, VSCode, PyCharm)
+
+
+3. Clone the software repo (2 ways)
+   1. sign into your github through the IDE
+   2. paste the repo address: `https://github.com/ramseylab/vgrampy.git`
+
+
+4. Change to the correct branch- for running for one experiment use `user-friendly`
+   1. for VisualStudio- on the right side click `Git Changes` and change the drop-down menu
+
+
+5. Open the command prompt and change your directory to the software repo `cd grampy`
+   1. if you open the command prompt within your IDE, it should already be in the right directory
+
+
+6. Install all of the required packages:
+```dockerignore
+pip install numpy
+```
+- depending on your computer, it may be `pip` or `pip3`
+- most packages will be install when creating the virtual environment
+
+7. Run the program by typing in 
+```
+python groupvg2.py
+```
+- depending on your computer, it may be `python` or `python3` or `py`
+
+# Options for `groupvg2.py`:
+
+- Vwidth
+
+# Troubleshooting:
+
+### Problem: When I try to switch my branch to user-friendly I get the error: 
 
 ```
-git clone git@github.com:ramseylab/vgrampy.git
+Exception of type 'Microsoft.TeamFoundation.Git.Contracts.GitCheckoutConflictException' was thrown`"
 ```
-
-2. Change directory into the software repo
-
-```
-cd vgrampy
-```
-
-3. Install a Python virtualenv, assuming `PYTHON` is a placeholder for a command
-that runs a "vgrampy"-compatible python (for example, `/usr/bin/python3` on MacOS
-12.6.5):
-
-```
-PYTHON -m venv venv
-```
-
-so on MacOS 12.6.5, the above would be:
-
-```
-/usr/bin/python3 -m venv venv
-```
-
-4. Install the required packages
-
-```
-venv/bin/pip3 install -r requirements.txt
-```
-
-5. Run `vg2signal.py` on your voltammogram `VGRAM.txt`
+This means that the destination branch has more exclusions in .gitignore than the original branch.
+**Solution:** in the Git changes, 'ignore' the .suo (or .wsuo) file and then do a force checkout to get to your desired branch.
 
 
-```
-venv/bin/python3 vg2signal.py VGRAM.txt
-```
+### Problem: When I am installing the packages, I get an error with `scikit-fda`
 
-where, of course, `VGRAM.txt` needs to be in the local
-working directory or you need to specify the path to it, like
+This means that you are not using Python 3.9
 
-```
-venv/bin/python3 vg2signal.py /path/to/VGRAM.txt
-```
+**Solution:** 
+- Uninstall the Python version you have on your computer (make sure it is no longer in PATH). 
+- Install Python 3.9 and change your interpreter to the correct version
 
-# Options for `vg2signal.py`:
-
-- `--plot`: a present/absent optional argument that displays a plot of the
-  detilted voltammogram
-- `--bw`: a floating point argument that specifies the bandwidth for kernel
-  density smoothing of the log-transformed voltammogram; default value is 0.02
-  (determined empirically on limited data using inspection; may not be optimal)
-- `--smooth`: a floating point argument that specifies the smoothing parameter
-for the smooth cubic spline fit for detilting; default value is 0.0000001
-(determined empirically on limited data using inspection; may not be optimal)
-- `--help`: display concise help text for the command-line options for `vg2signalpy`
-- `--recenter`: analyze the voltammogram twice; the second time, use a window
-that is centered on the empirically determined peak voltage from the first run
-(so-called "double-detilting")
-- `--vcenter`: specify the voltage where the analyte peak is expected (default
-value is `1.073649114`; this will likely need tuning depending on your specific
-experimental conditions, electrode treatment, saliva background, etc.)
-- `--vwidth`: specify the width of the window for data censoring for fitting the
-background voltammogram for detilting; defaults to `0.135`; this will likely
-need tuning depending on your specific experimental conditions, electrode
-treatment, saliva background, etc.)
 

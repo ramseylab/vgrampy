@@ -6,10 +6,10 @@ import sys
 
 
 def get_data(folderdata, trend, statdata):
-    os.chdir(folderdata)
-    if statdata == 1:
+    os.chdir(folderdata)  # change directory to folder to get data
+    if statdata == 1:  # if desired statistic is CV
         statstr = "CV"
-    else:
+    else:  # if desired statistic is T-Statistic
         statstr = "T-Statistic"
     gdict = dict()
     for fn in os.listdir():  # for each 'stats' excel file in folder
@@ -20,7 +20,7 @@ def get_data(folderdata, trend, statdata):
             for i in range(len(df[statstr])):  # for each concentration
                 conc = df['conc'][i]  # get concentration
                 statval = df[statstr][i]  # get stat value (CV or T-Statistic)
-
+                # for each concentration
                 if conc in gdict.keys():
                     prevtrends = gdict[conc][0]
                     prevstat = gdict[conc][1]
@@ -35,14 +35,15 @@ def get_data(folderdata, trend, statdata):
 
 def plot_trend(pltn, folderplot, trend, statplot, zerosplot):
     gdict = get_data(folderplot, trend, statplot)
-    colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']
-    shapes = ['o', 's', 'v', 'X']
+    colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']  # colors to plot different concs
+    shapes = ['o', 's', 'v', 'X']  # shapes to plot different concs
     cnt = 0
     ax1 = pltn
+    # sort concentrations to lowest to highest
     concs_targetlst = sorted([c for idx, c in enumerate(list(gdict.keys()))], key=lambda v: float(v[:-3]))
-    for key in gdict:
+    for key in gdict:  # for each concentration
         if ((key == "0.0 \u03BCM") and zerosplot) or (key != "0.0 \u03BCM"):
-            if statplot == 2:
+            if statplot == 2:  # if stat is t-statistic
                 currentidx = concs_targetlst.index(key)
                 prevval = concs_targetlst[currentidx - 1]
                 labelname = key + " & " + prevval + " samples"
@@ -52,56 +53,64 @@ def plot_trend(pltn, folderplot, trend, statplot, zerosplot):
                 ax1.scatter(gdict[key][0], gdict[key][1], label=key, color=colors[cnt], marker=shapes[cnt])
         cnt += 1
 
-    if stat == 1:
+    if stat == 1:  # if stat is CV
         ax1.set_ylim(0, 0.90)
         ax1.set_ylabel("signal CV", weight='bold', fontsize=15)
-    else:
+    else:  # if stat is t-statistic
         ax1.set_ylim(-1, 20)
         ax1.set_ylabel("t-statistic", weight='bold', fontsize=15)
-    if trend == 1:
+    if trend == 1:  # if trend is smoothing
         ax1.set_xlabel('smoothing', weight='bold', fontsize=15)
-    elif trend == 2:
+    elif trend == 2:  # if trend is stiffness
         ax1.set_xscale('log')
         ax1.set_xlabel('stiffness', weight='bold', fontsize=15)
-    elif trend == 3:
+    elif trend == 3:  # if trend is window width
         ax1.set_xlabel('window width', weight='bold', fontsize=15)
     ax1.legend(prop={'size': 13})
 
 
 def plot_double_trend(pltn, folderdouble, trend, zerosdouble):
     xlabels = ["smoothing_bw", "stiffness", "vcenter", "vwidth1", "vwidth2"]
-    titlename = folderdouble[folderdouble.rfind("/") + 1:]
     dictcv = get_data(folderdouble, trend, 'CV')
     dicttt = get_data(folderdouble, trend, 'T-Statistic')
-    ax1 = pltn.subplots()
+    ax1 = pltn
 
     colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']
     shapes = ['o', 's', 'v', 'h', 'X']
     cnt = 0
+    concs_targetlst = sorted([c for idx, c in enumerate(list(dictcv.keys()))], key=lambda v: float(v[:-3]))
     for key in dictcv:
+        currentidx = concs_targetlst.index(key)
+        prevval = concs_targetlst[currentidx - 1]
+        labelname = key + " & " + prevval + " samples"
         if (key == "0.0 \u03BCM" and zerosdouble) or key != "0.0 \u03BCM":
-            ax1.scatter(dictcv[key][0], dictcv[key][1], label=key + ' CV', marker=shapes[cnt], facecolors='none',
+            ax1.scatter(dictcv[key][0], dictcv[key][1], label=key + ' CV', marker=shapes[cnt],
                         edgecolors=colors[cnt])
         cnt += 1
     ax1.tick_params(axis='y')
     ax1.set_xlabel(xlabels[trend - 1])
     ax1.set_ylabel('CV')
-    ax1.set_ylim(0, 0.80)
+    ax1.set_ylim(0, 0.90)
     ax2 = ax1.twinx()
     cnt = 0
     for key in dicttt:
         if key != "0.0 \u03BCM":
             ax2.scatter(dicttt[key][0], dicttt[key][1], label=key + ' T-Statistic', marker=shapes[cnt],
-                        color=colors[cnt])
+                        facecolors='none', color=colors[cnt])
         cnt += 1
     ax2.tick_params(axis='y')
     ax2.set_ylabel('T-Statistic')
-    ax2.set_ylim(0, 9)
-    if trend == 2:
+    ax2.set_ylim(-1, 20)
+    if trend == 1:  # if trend is smoothing
+        ax1.set_xlabel('smoothing', weight='bold', fontsize=15)
+    elif trend == 2:  # if trend is stiffness
         ax1.set_xscale('log')
-    ax1.legend(bbox_to_anchor=(0, 1.14), loc='upper left', prop={'size': 7})
-    ax2.legend(bbox_to_anchor=(1, 1.14), loc='upper right', prop={'size': 7})
-    pltn.suptitle(titlename)
+        ax1.set_xlabel('stiffness', weight='bold', fontsize=15)
+    elif trend == 3:  # if trend is window width
+        ax1.set_xlabel('window width', weight='bold', fontsize=15)
+    ax1.legend(prop={'size': 7})
+    ax2.legend(prop={'size': 7})
+    #pltn.suptitle(titlename)
 
 
 def plotraw(folders):
@@ -132,7 +141,7 @@ if __name__ == '__main__':
     wide = 0
     param1 = 1  # 1=smoothing_bw,2=stiffness,3=vwidth
     param2 = 5
-    stat = 1  # 1:'CV' or 2:'T-Statistic' or 3:both
+    stat = 3  # 1:'CV' or 2:'T-Statistic' or 3:both
     zeros = False
     groupraw = False
     if groupraw:
@@ -140,7 +149,8 @@ if __name__ == '__main__':
         sys.exit()
     fig, axs = plt.subplots()
     for folder in foldersS:
-        if stat != 'both':
+        if stat != 3:
+
             plot_trend(axs, folder, param1, stat, zeros)
         else:
             plot_double_trend(axs, folder, param1, zeros)
