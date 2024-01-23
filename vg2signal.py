@@ -9,6 +9,11 @@ import csaps
 import numdifftools
 from sklearn import metrics
 
+"""
+get_num_header_lines
+- used by read_raw_vg_as_df to get number of rows to skip
+"""
+
 
 def get_num_header_lines(file_obj: typing.TextIO) -> int:
     line_ctr = 0
@@ -21,12 +26,19 @@ def get_num_header_lines(file_obj: typing.TextIO) -> int:
     return ret_ctr
 
 
+"""
+read_raw_vg_as_df
+- take the text file and gets the current & potential
+- return: dataframe of current & potential
+"""
+
+
 def read_raw_vg_as_df(filename: str) -> pandas.DataFrame:
     with open(filename, "r") as input_file:
         header_nlines = get_num_header_lines(input_file)
-# a single chain of method calls can produce the desired
-# two-column dataframe, with negative current in the "I"
-# column and with the voltage in the "V" column
+        # a single chain of method calls can produce the desired
+        # two-column dataframe, with negative current in the "I"
+        # column and with the voltage in the "V" column
         return pandas.read_csv(
             input_file,
             sep=", ",
@@ -41,6 +53,13 @@ def read_raw_vg_as_df(filename: str) -> pandas.DataFrame:
             lambda r: [r[0], -1E+6 * r[1]],
             axis=1,
             raw=True)
+
+
+"""
+make_shoulder_getter
+- takes a rough voltage location of peak shoulder
+- retrun: voltage location of peak shoulder used as "vcenter"
+"""
 
 
 def make_shoulder_getter(vstart: float,
@@ -66,12 +85,12 @@ def make_shoulder_getter(vstart: float,
         roots_ddd = spl_mdl_ddd_ppoly.roots(extrapolate=False)
         if len(roots_ddd) == 1:
             v_peak = float(roots_ddd[0])
-        elif len(roots_ddd) > 1:
+        elif len(roots_ddd) > 1:  # if multiple third derivatives
             minsecond = min(spl_mdl_dd_pred)
             idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
             vin = list(v[v_in])
             v_peak = vin[idx]
-        else:
+        else:  # if no third derivative, get minimum of second derivative
             minsecond = min(spl_mdl_dd_pred)
             idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
             vin = list(v[v_in])
@@ -79,6 +98,13 @@ def make_shoulder_getter(vstart: float,
             print("WARNING: no roots found")
         return None, v_peak
     return shoulder_getter_func
+
+
+"""
+make_smoother
+- uses kernel smoother to smooth the data
+- return: the smoothed current
+"""
 
 
 def make_smoother(smoothing_bw: float) -> typing.Callable:
@@ -93,6 +119,13 @@ def make_smoother(smoothing_bw: float) -> typing.Callable:
         return res
 
     return smoother_func
+
+
+"""
+make_signal_getter
+- gets signal metric (curvature, area, height) around peak
+- return: the signal metric
+"""
 
 
 def make_signal_getter(vstart: float,
@@ -124,20 +157,35 @@ def make_signal_getter(vstart: float,
     return signal_getter_func
 
 
-# stiffness: R-style stiffness parameter (non-negative)
+"""
+make_detilter
+- subtracts smoothed data from function interpolated without drug peak
+- return: detilted (normalized) current
+"""
+
+
 def make_detilter(vstart: float,
                   vend: float,
                   stiffness: float) -> typing.Callable:
     assert stiffness >= 0.0, \
         "invalid stiffness parameter (should be " + \
-        f"greater than zero): {stiffness}"
+        f"greater than or equal to zero): {stiffness}"
 
     def detilter_func(v: numpy.array, lis: numpy.array):
         v_out = numpy.logical_or(v < vstart, v > vend)
+        # stiffness: R-style stiffness parameter (non-negative)
         lis_bg = csaps.csaps(v[v_out], lis[v_out], v,
                              smooth=(1.0 / (1.0 + stiffness)))
         return lis - lis_bg
     return detilter_func
+
+
+"""
+vg2signal
+- main function for vg2signal.py
+- log transform (if indicated), smooth, detilt, and get signal metric for a voltammogram
+- return: signal metric, voltage of peak, dataframe of transformed data at each V, calculated peak center
+"""
 
 
 def v2signal(vg_filename: str,
