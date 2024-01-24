@@ -1,6 +1,6 @@
 # vgrampy
 
-### Author: Noel Lefevre (Adopted from Steven Ramsey)
+### Author: Noel Lefevre (Adapted from Steven Ramsey's LDNH README.md)
 ### Date: January 29, 2024
 
 Python tools for analyzing electrochemistry voltammograms. The script
@@ -20,10 +20,10 @@ analyte peak).
 So far, this software has only been tested on Windows11/x86_64. It has 
 not been tested on MacOS 12.6.5 on Apple M1, Linux/x86_64, etc.
 
-# How to install and run `groupvg2.py`:
+# How to install and run `groupvg2.py` for `user-friendly` branch:
 
 1. Download Python 3.9 (can be 3.9.0-3.9.12)
-   1. make sure to select `Add Python 3.9 to PATH`
+   1. make sure to select `Add Python 3.9 to PATH` when you install it
 
 
 2. Download a coding application/IDE (i.e. VisualStudio, VSCode, PyCharm)
@@ -67,6 +67,7 @@ python groupvg2.py
 Exception of type 'Microsoft.TeamFoundation.Git.Contracts.GitCheckoutConflictException' was thrown`"
 ```
 This means that the destination branch has more exclusions in .gitignore than the original branch.
+
 **Solution:** in the Git changes, 'ignore' the .suo (or .wsuo) file and then do a force checkout to get to your desired branch.
 
 
@@ -79,3 +80,8 @@ This means that you are not using Python 3.9
 - Install Python 3.9 and change your interpreter to the correct version
 
 
+### Problem: I cannot access the vgrampy github
+
+You need to be added by an admin in order to access the code (currently Noel)
+
+**Solution:** email the admin to get your github account added to the repo
