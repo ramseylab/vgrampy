@@ -207,7 +207,7 @@ def v2signal(vg_filename: str,
 
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
 
-    shoulder_getter = make_shoulder_getter(1, 1.1)
+    shoulder_getter = make_shoulder_getter(1, 1.1)  # 1-1.1V is approx peak location
     (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],
                                                      vg_df["smoothed"])
 
@@ -224,12 +224,13 @@ def v2signal(vg_filename: str,
     ymaxidx = numpy.argmax(vg_df["detilted"])
 
     peakarea = metrics.auc(vg_df["V"], vg_df["detilted"])*1000
+    peakheight = vg_df["detilted"][ymaxidx]
 
-    if peak_feat == 1:
+    if peak_feat == 1:  # if signal metric is peak curvature
         peak_signal_return = peak_curve_return
-    elif peak_feat == 2:
-        peak_signal_return = vg_df["detilted"][ymaxidx]
+    elif peak_feat == 2:  # if signal metric is peak height
+        peak_signal_return = peakheight
     else:
-        peak_signal_return = peakarea
+        peak_signal_return = peakarea  # if signal metric is peak area
 
     return peak_signal_return, peak_v_return, vg_df, vcenter
