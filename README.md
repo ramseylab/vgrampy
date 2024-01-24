@@ -16,6 +16,7 @@ analyte peak).
 - Python 3.9 (it doesn't yet work on Python 3.11)
 - `git`
 - Coding Application/IDE
+- A github account
 
 So far, this software has only been tested on Windows11/x86_64. It has 
 not been tested on MacOS 12.6.5 on Apple M1, Linux/x86_64, etc.
