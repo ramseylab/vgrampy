@@ -152,13 +152,13 @@ def run_folderpath(folderpath):
     if not os.path.exists(folderpath):  # if folderpath does not exist
         sys.exit("Error: invalid file path")  # exit
 
-    do_log = True  # log param
+    do_log = False # log param
     recenter = False  # double detilt/ recenter param
     # change below to try different params
     logbase_lst = [2]
-    bw_lst = [0.006] #np.arange(0.0001,0.01,0.005)
-    stiffness_lst = [0] #np.arange(0, 0.001, 0.001)
-    vwidth1_lst = [0.15]#np.arange(0.13,0.20,0.01)#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
+    bw_lst = [0.006] #np.arange(0.0001,0.01,0.0001)
+    stiffness_lst = [0]#np.arange(0.0001,0.01,0.0001)
+    vwidth1_lst = [0.15]#[0.12, 0.125, 0.13, 0.135, 0.14, 0.145, 0.15, 0.155, 0.16]
     vwidth2_lst = [0.17]  # np.arange(0.13,0.18,0.001)
     vcenter_lst = [1.04]  # np.arange(1.00,1.08,0.005)
     for s in stiffness_lst:
@@ -304,10 +304,13 @@ def condense_best(folderss, fbest):
 
 if __name__ == '__main__':
     start_time = time.time()
+    # folders = [
+    #     'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC3/2023_12_12_LowConc3',
+    #     'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC4/2023_12_15_LowConc4',
+    #     'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC5/2023_12_17_LowConc5',
+    # ]
     folders = [
-        'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/noelbranchtest/2023_12_12_LowConc3',
-        'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/noelbranchtest/2023_12_15_LowConc4',
-        'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/noelbranchtest/2023_12_17_LowConc5',
+        'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/vg2signallook',
     ]
     just_analysis = "N"
     if just_analysis == "Y":

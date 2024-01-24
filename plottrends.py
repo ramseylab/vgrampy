@@ -46,7 +46,7 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 			if stat == 'T-Statistic':
 				currentidx = concs_targetlst.index(key)
 				prevval = concs_targetlst[currentidx - 1]
-				labelname = key + " & " + prevval + " Samples"
+				labelname = key + " & " + prevval + " samples"
 				ax1.scatter(gdict[key][0],gdict[key][1],label=labelname,color=colors[cnt],facecolors='none',marker=shapes[cnt])
 			else:
 				ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
@@ -55,23 +55,29 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 	#ax1.xscale('log')
 	if stat == "CV":
 		ax1.set_ylim(0,0.90)
-		ax1.set_ylabel("CV", weight='bold', fontsize=15)
+		ax1.set_ylabel("signal CV", weight='bold', fontsize=15)
 	else:
-		ax1.set_ylim(-1,20)
+		ax1.set_ylim(-1,15)
 		ax1.set_ylabel("t-statistic", weight='bold', fontsize=15)
 	if trend == 2:
 		ax1.set_xscale('log')
-		ax1.set_xlabel('Stiffness', weight='bold', fontsize=15)
+		ax1.set_xlabel('stiffness', weight='bold', fontsize=15)
+		trendstr = 'stiffness'
 	elif trend == 4:
-		ax1.set_xlabel('Window Width', weight='bold', fontsize=15)
+		ax1.set_xlabel('window width', weight='bold', fontsize=15)
+		trendstr = 'vwidth'
 	elif trend == 1:
-		ax1.set_xlabel('Smoothing', weight='bold', fontsize=15)
+		ax1.set_xlabel('smoothing', weight='bold', fontsize=15)
+		trendstr = 'smooth'
 
 	#ax1.set_title(titlename)
 	#ax1.legend(bbox_to_anchor=(0, 2), loc='upper right',prop={'size': 7})
 	#ax1.legend(bbox_to_anchor=(0.3, 0.65),prop={'size': 13}) #tstat 0.7,0.65=top R,
 	ax1.legend(prop={'size': 13})
 	#plt.show()
+	figtitle = trendstr+stat+'png'
+	plt.savefig(figtitle)
+	plt.close()
 
 def plot_double_trend(pltn,folder,trend,zeros):
 	xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
@@ -164,71 +170,133 @@ def plotraw(folders):
 	plt.ylabel("Current (\u03BCM)")
 	plt.show()
 
-					
 
-if __name__ == '__main__':
-	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_19_SOD4',
-                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S4',  
-	#]
-	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0',
-	#'C:/Users/patri/Box/Fu Lab/Noel/CBZdata/vg2signalwork/0/0p025',
-	foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript3/heslog/LC3/smooth',
-                ]
-	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/N','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_17_SAL2/SAL']
-	#foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inSnoN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inS']
-    #foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_06_29_KNonWorking1/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S1','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_07_14_KNonWorking2/S3']
+
+def driver(folder, stat, param1):
+
 	tall = 0
 	wide = 0
-	param1 = 1 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
+	#param1 = 1 #1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
 	param2 = 5
-	stat = 'T-Statistic' #'CV' or 'T-Statistic' or both
+	#stat = 'CV' #'CV' or 'T-Statistic' or both
 	zeros = False
 	#xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
 	groupraw = False
-	if groupraw:
-		plotraw(foldersS)
-		sys.exit()
-
-	
+	# if groupraw:
+	# 	plotraw(foldersS)
+	# 	sys.exit()
+	#
+	#
 	threeD=False
-	if not threeD:
-		talltotal = -(-len(foldersS)//3)
-		widetotal = 3
-		if talltotal < 2:
-			talltotal=2
-		fig, axs = plt.subplots()
+	# if not threeD:
+	# 	talltotal = -(-len(foldersS)//3)
+	# 	widetotal = 3
+	# 	if talltotal < 2:
+	# 		talltotal=2
+	fig, axs = plt.subplots()
 		#fig = plt.figure(figsize=(15,10))
 		#axs = fig.subfigures(talltotal,widetotal)
 		
 	#fig.supxlabel(xlabels[param-1])
 	#fig.supylabel(stat)
 
-	for folder in foldersS:
+	#for folder in foldersS:
 		#print(tall,",",wide)
-		if stat != 'both':
-			if threeD:
-				threeD_plot(folder, param1, param2, stat, zeros)
-			else:
-				#plot_trend(axs[tall,wide],folder, param1, stat, zeros)
-				plot_trend(axs,folder, param1, stat, zeros)
-				#plt.show()
+	if stat != 'both':
+		if threeD:
+			threeD_plot(folder, param1, param2, stat, zeros)
 		else:
-			plot_double_trend(axs[tall,wide],folder,param1, zeros)
-		if wide ==2:
-			tall+=1
-			wide=0
-		elif wide==1:
-			wide=2
-		else:
-			wide=1
-	if wide != 0:
-		if wide == 1:
-			print("")
-			#fig.delaxes(axs[tall,1])
-		#fig.delaxes(axs[tall,2])
-	plt.show()
-	#foldersS =['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_19_SOD4','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/07_31/2023_04_03_SOD2/S4']
-	#foldersS =#['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_19_SOD4',
-                #'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S1', 'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S2','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S3','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_04_03_SOD2/S4',  
-	#foldersS = ['C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)onN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p2)pN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inSnoN','C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/vg2signalwork/08_01/2023_05_11_KRedoSDSpN/SDS(0p4)inS',
-    
+			#plot_trend(axs[tall,wide],folder, param1, stat, zeros)
+			plot_trend(axs,folder, param1, stat, zeros)
+			#plt.show()
+	else:
+		plot_double_trend(axs[tall,wide],folder,param1, zeros)
+	if wide ==2:
+		tall+=1
+		wide=0
+	elif wide==1:
+		wide=2
+	else:
+		wide=1
+	# if wide != 0:
+	# 	if wide == 1:
+	# 		print("")
+		#fig.delaxes(axs[tall,1])
+	#fig.delaxes(axs[tall,2])
+	#plt.show()
+
+
+if __name__ == '__main__':
+	folders = [
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC3/smooth',1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC4/smooth',1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC5/smooth',1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC3/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC4/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC5/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC3/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC4/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/panolog/LC5/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/palog/LC3/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/palog/LC4/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/palog/LC5/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/palog/LC3/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/palog/LC4/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/palog/LC5/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/palog/LC3/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/palog/LC4/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/palog/LC5/vwidth', 4),
+		#
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phnolog/LC3/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phnolog/LC4/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phnolog/LC5/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phnolog/LC3/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phnolog/LC4/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phnolog/LC5/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phnolog/LC3/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phnolog/LC4/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phnolog/LC5/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC3/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC4/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC5/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC3/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC4/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC5/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC3/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC4/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC5/vwidth', 4),
+
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/smooth', 1),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/smooth', 1),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/smooth', 1),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/stiff', 2),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/stiff', 2),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/stiff', 2),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/vwidth', 4),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/vwidth', 4),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/vwidth', 4),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/smooth', 1),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/smooth', 1),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/smooth', 1),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/stiff', 2),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/stiff', 2),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/stiff', 2),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/vwidth', 4),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/vwidth', 4),
+		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/vwidth', 4),
+	]
+	# savefolders = [
+	# 	'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC3/smooth',  # 2023_12_12_LowConc3',
+	# 	'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/hesnolog/LC4/smooth',  # 2023_12_15_LowConc4',
+	# 	'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/hesnolog/LC5/smooth',  # 2023_12_17_LowConc5',
+	# ]
+	# 1=smoothing_bw,2=stiffness,3=vcenter,4=vwidth1,5=vwidth2
+	for f, p in folders:
+		print("File",f)
+		print("P",p)
+		#driver(f, 'CV', 1)
+		#driver(f, 'CV', 2)
+		#driver(f, 'CV', 4)
+		driver(f, 'T-Statistic', p)
+		#driver(f, 'T-Statistic', 2)
+		#driver(f, 'T-Statistic', 4)
