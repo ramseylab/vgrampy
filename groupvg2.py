@@ -4,7 +4,7 @@ import os
 import sys
 import pandas as pd
 import scipy.stats as stats
-import time
+import matplotlib.pyplot as plt
 
 """
 make_xlsx_str
@@ -143,168 +143,105 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth):
 
 
 """
+plot_curtype(
+    foldername: to save data, vg_df: df of data to plot, curtype: type of voltammogram,
+    sep: separate by concentration (T), param_str: parameters to put in file string)
+- plot voltammogram 
+- save image to data folder
+"""
+
+
+def plot_curtype(foldername, vgdf, curtype, sep, param_str):
+    plt.clf()
+    colors = ['red', 'blue', 'green', 'black', 'pink']
+    cnt = 0
+    for conc in vgdf.keys():
+        concstr = str(float(conc)) + " \u03BCM"
+        vglst = vgdf[conc]
+        for i in range(0, len(vglst)):
+            vg = vglst[i]
+            x = vg["V"]
+            y = vg[curtype]
+            if i == (len(vglst) - 1):
+                plt.plot(x, y, color=colors[cnt], label=concstr)
+            else:
+                plt.plot(x, y, color=colors[cnt])
+        cnt += 1
+        plt.legend()
+        if sep:
+            plt.xlabel("Potential (V)")
+            plt.title(foldername + " " + curtype + " voltammogram")
+            if curtype == "smoothed":
+                plt.ylabel("Current (i/\u03BCA)")
+            else:
+                plt.ylabel("Normalized Current")
+            figname = foldername + "_" + curtype + "_" + concstr + param_str + ".png"
+            plt.savefig(figname)
+            plt.clf()
+    if not sep:
+        plt.title(foldername + " " + curtype + " voltammogram")
+        plt.xlabel("Potential (V)")
+        if curtype == "smoothed":
+            plt.ylabel("Current (i/\u03BCA)")
+        else:
+            plt.ylabel("Normalized Current")
+        figname = foldername + "_" + curtype + param_str + ".png"
+        plt.savefig(figname)
+
+
+"""
+plot_vgrams(folderpath: folder to plot data from, vgdf: df of data to plot,
+    sep: separate by concentration (T), param_str: parameters to put in file string)
+- driver to plot both smoothed and detilted volgrammograms
+- calls plot_curtype to plot and save
+"""
+
+
+def plot_vgrams(folderpath, vgdf, sep, param_str):  # alter for vg_d
+    foldername = folderpath[folderpath.rfind("\\") + 1:]
+    plot_curtype(foldername, vgdf, "smoothed", sep, param_str)
+    plot_curtype(foldername, vgdf, "detilted", sep, param_str)
+
+
+"""
 run_folderpath(folderpath: folder to run program)
 - runs all combinations of parameters through the vg2signal.py functions
 """
 
 
-def run_folderpath(folderpath):
-    if not os.path.exists(folderpath):  # if folderpath does not exist
-        sys.exit("Error: invalid file path")  # exit
-
+def run_folderpath(folderpath, toplot, sep):
     do_log = True  # log param
-    p_f = 1  # 1:curvature, 2:height, 3:area
-    # change below to try different params
-    bw_lst = [0.006]
-    stiffness_lst = [0]  # np.arange(0, 0.001, 0.001)
-    vwidth1_lst = [0.15]  # np.arange(0.13,0.20,0.01)
-    for s in stiffness_lst:
-        print("stiffness=", s)
-        for bw in bw_lst:
-            print("bw=", bw)
-            for w in vwidth1_lst:
-                print("vwidth=", w)
-                run_vg2(folderpath, do_log, p_f, bw, s, w)
+    peak_feat = 1  # 1:curvature, 2:height, 3:area
+    smoothing_bw = 0.006  # smoothing bandwidth param
+    stiffness = 0  # stiffness param
+    vwidth = 0.15  # detilt window width
 
+    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth)
 
-"""
-param_analysis(foldersanalysis: folders to analyze, param: parameter to determine 'best'
-- compares each combination of parameters based on 'param'
-- returns best combination of parameters, & their statistics
-"""
-
-
-def param_analysis(foldersanalysis, param):  # param-'CV' or 'T-Statistic'
-    big_best = dict()
-    for folderi in foldersanalysis:  # for each folder in list
-        best = dict()  # dictionary of best parameters
-        os.chdir(folderi)
-
-        for fn in os.listdir():  # for each 'stats' excel file in folder
-            if fn[:5] == "stats":
-                df = pd.read_excel(fn)
-                for i in range(len(df[param])):  # for each concentration
-                    conc = df['conc'][i]  # get concentration
-                    cvval = df["CV"][i]  # get parameter value (CV or T-Statistic)
-                    tsval = df["T-Statistic"][i]  # get parameter value (CV or T-Statistic)
-                    pval = df[param][i]
-                    psignal = df['average'][i]  # get average signal
-                    filepath = folderi + "/" + fn
-
-                    if conc in best.keys():  # if conc already in dict
-                        oldpval = best[conc][1]
-                        oldpsignal = best[conc][2]
-                        if oldpval > pval != 0:  # if this param val better than best
-                            best[conc] = [filepath, pval, psignal, cvval,
-                                          tsval]  # reassign dict values (filepath, param value)
-                        elif oldpval == pval:  # if param val the saem as best
-                            oldfn = best[conc][0]
-                            # create list of filepaths to save in dict
-                            if not isinstance(oldfn, list):
-                                oldfn = [oldfn, filepath]
-                            else:
-                                oldfn.append(filepath)
-                            best[conc] = [oldfn, oldpval, oldpsignal, cvval, tsval]
-                    else:  # if conc NOT in dict
-                        best[conc] = [filepath, pval, psignal, cvval, tsval]  # save initial path & param val
-            big_best[folderi] = best
-    return big_best
-
-
-"""
-split_str(fn: file name to split)
-returns: folder name, and parameters split up
-"""
-
-
-def split_str(fn):
-    fnsplit = fn.split("_")
-    log = fnsplit[-5]
-    pf = fnsplit[-4]
-    bw = fnsplit[-3]
-    stiff = fnsplit[-2]
-    vwidth = fnsplit[-1][:-5]
-    foldern = fnsplit[-8][:-5]
-    return foldern, log, pf, bw, stiff, vwidth
-
-
-"""
-get_params(d: dataframe)
-- get data for best parameters
-- return: dataframe for best parameters for each concentration
-"""
-
-
-def get_params(d):
-    dfb = pd.DataFrame(
-        columns=["conc", 'avgsignal', 'CV', 'T-Statistic', 'log', 'peakfeature', 'bw', 'stiffness', 'vwidth'])
-    foldern = None
-    foldernn = None
-    for conc in d:
-        fns, pval, psignal, cvval, tsval = d[conc]
-        if isinstance(fns, str):
-            foldern, log, pf, bw, stiff, vwidth = split_str(fns)
-        else:
-            log = []
-            bw = []
-            pf = []
-            stiff = []
-            vwidth = []
-            for fn in fns:
-                foldernn, logn, pfn, bwn, stiffn, vwidthn = split_str(fn)
-                log.append(logn)
-                pf.append(pfn)
-                bw.append(bwn)
-                stiff.append(stiffn)
-                vwidth.append(vwidthn)
-            foldern = foldernn
-        dfb.loc[len(dfb.index)] = [conc, psignal, cvval, tsval, log, pf, bw, stiff, vwidth]
-    dfb.columns = [foldern, 'avgsignal', 'CV', 'T-Statistic', 'log', 'peakfeature', 'bw', 'stiffness', 'vwidth']
-    return dfb
-
-
-"""
-condense_best(folderss: folder to analyze subfolders, fbest: dataframe of best parameters)
-- writes best parameters & their statistics to an excel file
-"""
-
-
-def condense_best(folderss, fbest):
-    os.chdir(folderss[0])
-    os.chdir("..")
-    cwd = os.getcwd()
-    excel_path = os.path.join(cwd, "best_stats.xlsx")
-    for fn in fbest:
-        f = fbest[fn]
-        dfn = get_params(f)
-        if not os.path.exists(excel_path):
-            dfn.to_excel(excel_path, sheet_name="Sheet1", index=False, engine='openpyxl')
-        else:
-            with pd.ExcelWriter(excel_path, engine='openpyxl', if_sheet_exists='overlay', mode='a') as writer:
-                dfn.to_excel(writer, sheet_name="Sheet1", index=False, startrow=writer.sheets["Sheet1"].max_row,
-                             startcol=0)
+    if toplot:
+        print("Saving Plots...")
+        plot_vgrams(folderpath, vg_d, sep, param_str)
+        print("Plots Saved")
 
 
 if __name__ == '__main__':
-    start_time = time.time()
-    folders = [
-        'C:/Users/temp/Box/Fu Lab/Noel/CBZdata/cleancode/2023_12_12_LowConc3',
-        'C:/Users/temp/Box/Fu Lab/Noel/CBZdata/cleancode/2023_12_15_LowConc4',
-        'C:/Users/temp/Box/Fu Lab/Noel/CBZdata/cleancode/2023_12_17_LowConc5',
-    ]
-    just_analysis = "N"
-    if just_analysis == "Y":
-        bd = param_analysis(folders, 'CV')
-        condense_best(folders, bd)
-        sys.exit()
+    # folderpath to analyze
+    folder = input("Enter the path to analyze: ")
+    if not os.path.exists(folder):
+        sys.exit("Error: invalid file path")
 
-    # run vg2 for each file in each folder in list
-    for folder in folders:
-        print("Processing: " + folder)
-        run_folderpath(folder)
+    plot = input("Would you like to plot? (Y/N): ")
+    sepplot = False
+    if plot == "Y":
+        sepplot = input("Would you like to separate plots by concentration? (Y/N): ")
+        if sepplot == "Y":
+            sepplot = True
+        else:
+            sepplot = False
+        plot = True
+    else:
+        plot = False
 
-    # analyze for best parameters
-    bd = param_analysis(folders, 'CV')
-    condense_best(folders, bd)
-    totaltime = time.time() - start_time
-    print("Total Time: ", totaltime)
+    # run vg2 for file
+    print("Processing: " + folder)
+    run_folderpath(folder, plot, sepplot)

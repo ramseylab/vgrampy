@@ -4,13 +4,14 @@ import os
 import matplotlib.ticker as ticker
 from matplotlib.ticker import MultipleLocator
 import sys
+import pandas as pd
 
 """
 plotraw(filename, labels)
 """
 
 
-def plot_raw(filename, labels):
+def plot_raw(filename, labels, colorslst):
     if filename[-3:] == 'txt':
         print("plotting file:", filename)
         fp = open(filename, 'r')
@@ -19,17 +20,12 @@ def plot_raw(filename, labels):
         idx1 = filename.rfind("cbz")
         idx2 = filename[idx1:].find("_")
         conc = filename[idx1 + 3:idx1 + idx2]
-        # add concentration better
-        if conc == "00":
-            c = 'black'
-            conc_str = '0 \u03BCM'
-        elif conc == "7p5":
-            c = 'red'
-            conc_str = '7.5 \u03BCM'
-        else:
-            c = 'blue'
-            conc_str = '15 \u03BCM'
 
+        if 'p' in conc:  # for 7p5 concentration
+            pi = conc.find('p')
+            conctemp = conc[:pi] + '.' + conc[pi + 1:]
+            conc = conctemp
+        conc_str = str(float(conc))+" \u03BCM"
         for line in fp:
             if line[0].isnumeric():
                 potential, diff, f, rev = line.split(',')
@@ -37,16 +33,37 @@ def plot_raw(filename, labels):
                 current = -float(diff) * 1000000
                 xs.append(potential)
                 ys.append(current)
-        if labels is None:
-            plt.plot(xs, ys, color=c, label=conc_str)
-            labels.append(conc_str)
-        elif conc_str in labels:
-            plt.plot(xs, ys, color=c)
+        labelkeys = list(labels.keys())
+        if conc_str in labelkeys:
+            plt.plot(xs, ys, color=labels[conc_str])
         else:
-            plt.plot(xs, ys, color=c, label=conc_str)
-            labels.append(conc_str)
+            newcolor = colorslst.pop()
+            plt.plot(xs, ys, color=newcolor, label=conc_str)
+            labels[conc_str] = newcolor
     return labels
 
+def makedicts(file, ytype):
+    df = pd.read_excel(file)
+    dicttype = dict()
+    concs = set((l[0], l[1]) for l in df.values)
+    for c, d in concs:
+        x = [l[2] for l in df.values if l[0] == c and l[1] == d]
+        if ytype == "R":
+            y = [l[3] for l in df.values if l[0] == c and l[1] == d]
+        elif ytype == "L":
+            y = [l[4] for l in df.values if l[0] == c and l[1] == d]
+        elif ytype == "S":
+            y = [l[4] for l in df.values if l[0] == c and l[1] == d]
+        else:
+            y = [l[5] for l in df.values if l[0] == c and l[1] == d]
+
+        dicttype[(c, d)] = (x, y)
+    return dicttype
+
+def plotdataframe(datadf):
+    colors = ['tab:green', 'tab:blue', 'tab:red', 'tab:purple', 'tab:orange']  # colors to plot different concs
+    for key, val in datadf.items():
+        plt.plot(val[0], val[1], label=key, colors=colors.pop())
 
 if __name__ == '__main__':
     multiple = input("Would you like to plot one (O) or multiple (M) voltammograms?: ")
@@ -54,40 +71,44 @@ if __name__ == '__main__':
         print("Invalid input, enter (O) or (M)")
         sys.exit()
 
-    vgramtype = input("Would you like to plot raw (R), smoothed (S), detilted (D), or all (A) voltammograms?: ")
+    filetype = input("Do you have a Dataframe file (D) or text (T)?: ")
+    if filetype == "D":
+        vgramtype = input("Would you like to plot raw (R), log (L), smoothed (S), detilted (D), or all (A) voltammograms?: ")
+    else:
+        vgramtype = "raw"
     fig, ax = plt.subplots()
-
-    if vgramtype == "R":
+    if vgramtype == "raw":
         if multiple == "O":
             fn = input("Enter the text file's path: ")
-            ls = []
-            plot_raw(fn, ls)
+            ls = dict()
+            colors = ['tab:green', 'tab:blue', 'tab:red', 'tab:purple', 'tab:orange']
+            plot_raw(fn, ls, colors)
 
         else:
             folder = input("Enter the folder path to analyze: ")
             os.chdir(folder)
-            ls = []
+            ls = dict()
+            colors = ['tab:green', 'tab:blue', 'tab:red', 'tab:purple', 'tab:orange']
             for fn in os.listdir():
-                newls = plot_raw(fn, ls)
+                newls = plot_raw(fn, ls, colors)
                 ls = newls
-        plt.ylabel("Current ($\mu$A)", weight='bold', fontsize=20)
-
-    elif vgramtype == "S":
-        # smoothed
-        print("smoothed")
-
-    elif vgramtype == "D":
-        # detilted
-        print("smoothed")
+        plt.ylabel("current ($\mu$A)", weight='bold', fontsize=20)
 
     elif vgramtype == "A":
         print("all")
 
-    else:
-        print("Invalid input, enter (R), (S), (D), or (A)")
+    elif vgramtype == "R" or vgramtype == "L" or vgramtype == "S" or vgramtype == "D":
+        # raw voltammogram from dataframe
+        fn = input("Enter the text file's path: ")
+        datadict = makedicts(fn, vgramtype)
+        plt.show()
         sys.exit()
 
-    plt.xlabel("Potential (V)", weight='bold', fontsize=20)
+    else:
+        print("Invalid input, enter (R), (L), (S), (D), or (A)")
+        sys.exit()
+
+    plt.xlabel("potential (V)", weight='bold', fontsize=20)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
     ax.xaxis.set_ticks(np.arange(0.5, 1.2, 0.01))
@@ -96,3 +117,13 @@ if __name__ == '__main__':
     ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
     plt.legend()
     plt.show()
+
+    # elif vgramtype == "S":
+    #     # smoothed
+    #     print("smoothed")
+    #
+    # elif vgramtype == "D":
+    #     # detilted
+    #     print("smoothed")
+
+
