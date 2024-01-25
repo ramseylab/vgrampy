@@ -55,17 +55,26 @@ def plot_trend(ax1, folderplot, trend, statplot, zerosplot, fsize, leglocplot):
     if statplot == 1:  # if stat is CV
         ax1.set_ylim(0, 0.90)
         ax1.set_ylabel("signal CV", weight='bold', fontsize=15)
+        statstr = 'CV'
     else:  # if stat is t-statistic
         ax1.set_ylim(-1, 20)
         ax1.set_ylabel("t-statistic", weight='bold', fontsize=15)
+        statstr = 't-statistic'
     if trend == 1:  # if trend is smoothing
         ax1.set_xlabel('smoothing', weight='bold', fontsize=15)
+        trendstr = 'stiffness'
     elif trend == 2:  # if trend is stiffness
         ax1.set_xscale('log')
         ax1.set_xlabel('stiffness', weight='bold', fontsize=15)
+        trendstr = 'vwidth'
     elif trend == 3:  # if trend is window width
         ax1.set_xlabel('window width', weight='bold', fontsize=15)
+        trendstr = 'smooth'
+
     ax1.legend(loc=leglocplot, prop={'size': fsize})
+    figtitle = trendstr+statstr+'saved'
+    fig.savefig(figtitle)
+    plt.close()
 
 
 def plot_double_trend(pltn, folderdouble, trend, zerosdouble):
@@ -85,9 +94,7 @@ def plotraw(folders):
             if fn[-3:] == "txt":
                 underlines = fn.split("_")
                 cbzamt = underlines[-2][-2:]
-                print(cbzamt)
                 if cbzamt == "15":
-                    print("in")
                     vgdf = vg2signal.read_raw_vg_as_df(str(fn))
                     plt.plot(vgdf["V"], vgdf["I"], color=colors[cnt])
         cnt += 1
@@ -105,7 +112,7 @@ if __name__ == '__main__':
     param2 = 5
     stat = 2  # 1:'CV' or 2:'T-Statistic' or 3:both
     zeros = False
-    groupraw = True
+    groupraw = False
     if groupraw:
         plotraw(foldersS)
         sys.exit()
