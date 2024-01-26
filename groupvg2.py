@@ -86,7 +86,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth):
             if peak_v is None:
                 peak_v = 0
             # add text filename & peak signal to signal list
-            signal_lst.append([filename, round(peak_signal, 2), round(peak_v, 3), round(vcentershoulder, 3)])
+            signal_lst.append([filename, round(peak_signal, 4), round(peak_v, 3), round(vcentershoulder, 3)])
             if conc in conc_dict.keys():  # for each concentration
                 conclst = conc_dict[conc]
                 conclst.append((peak_signal, peak_v))  # add peak signal to concentration dictionary
