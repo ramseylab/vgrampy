@@ -209,13 +209,7 @@ run_folderpath(folderpath: folder to run program)
 """
 
 
-def run_folderpath(folderpath, toplot, sep):
-    do_log = True  # log param
-    peak_feat = 1  # 1:curvature, 2:height, 3:area
-    smoothing_bw = 0.006  # smoothing bandwidth param
-    stiffness = 0  # stiffness param
-    vwidth = 0.15  # detilt window width
-
+def run_folderpath(folderpath, toplot, sep, do_log, peak_feat, smoothing_bw, stiffness, vwidth):
     vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth)
 
     if toplot:
@@ -229,6 +223,33 @@ if __name__ == '__main__':
     folder = input("Enter the path to analyze: ")
     if not os.path.exists(folder):
         sys.exit("Error: invalid file path")
+
+    custom = input("Would you like to specify the analysis parameters (Y/N)? Default: peak curvature, smoothing = "
+                   "0.006, stiffness = 0, vwidth = 0.15")
+
+    if custom == "Y":
+        do_loginput = bool(input("Do you want to log-transform? (1: log, 0: no log): "))
+
+        peak_featinput = int(input("Enter the peak feature (curvature: 1, height: 2, area: 3): "))
+        if peak_featinput < 1 or peak_featinput > 3:
+            sys.exit("Error: invalid peak feature")
+
+        smoothing_bwinput = float(input("Enter the smoothing parameter (>0): "))
+        if smoothing_bwinput < 0:
+            sys.exit("Error: invalid smoothing parameter")
+
+        stiffnessinput = float(input("Enter the stiffness (>0): "))
+        if stiffnessinput < 0:
+            sys.exit("Error: invalid stiffness")
+
+        vwidthinput = float(input("Enter the window width: "))
+    else:
+        do_loginput = True  # log param
+        peak_featinput = 1  # 1:curvature, 2:height, 3:area
+        smoothing_bwinput = 0.006  # smoothing bandwidth param
+        stiffnessinput = 0  # stiffness param
+        vwidthinput = 0.15  # detilt window width
+
 
     plot = input("Would you like to plot? (Y/N): ")
     sepplot = False
@@ -244,4 +265,4 @@ if __name__ == '__main__':
 
     # run vg2 for file
     print("Processing: " + folder)
-    run_folderpath(folder, plot, sepplot)
+    run_folderpath(folder, plot, sepplot, do_loginput, peak_featinput, smoothing_bwinput, stiffnessinput, vwidthinput)
