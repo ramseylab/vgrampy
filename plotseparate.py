@@ -60,7 +60,6 @@ def figformat():
     ax.xaxis.set_major_locator(MultipleLocator(.1))
     ax.xaxis.set_minor_locator(MultipleLocator(.01))
     ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-    plt.legend()
     plt.show()
 
 
@@ -107,20 +106,21 @@ def plotdataframe
 """
 
 
-def plotdataframe(datadf):
-    colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple', 'black']  # colors to plot different concs
-    cnt = 0
-    prevkey = 100
-    color = ''
+def plotdataframe(datadf, sep):
+    colors = ['tab:orange', 'tab:blue', 'tab:orange', 'tab:red', 'tab:green', 'black']  # colors to plot different concs
+    colorconc = dict()
     for key, val in datadf.items():
         labelname = str(key[0]) + ' \u03BCM'
 
-        if prevkey != key[0]:
-            print("prevkey ", prevkey)
-            print("key: ", key[0])
+        if key[0] not in colorconc.keys():
             color = colors.pop()
+            colorconc[key[0]] = color
+        else:
+            color = colorconc[key[0]]
         plt.plot(val[0], val[1], label=labelname, color=color)  # colors based on concentration
-        prevkey = key[0]
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys())
 
 
 """
@@ -129,10 +129,9 @@ main
 """
 
 if __name__ == '__main__':
-    # filetype = input("Do you have a Dataframe file (D) or text (T)?: ")
-    # multiple = input("Would you like to plot one (O) or multiple (M) voltammograms?: ")
-    filetype = "D"
-    multiple = "M"
+    filetype = input("Do you have a Dataframe file (D) or text (T)?: ")
+    multiple = input("Would you like to plot one (O) or multiple (M) voltammograms?: ")
+
     if multiple != "O" and multiple != "M":
         print("Invalid input, enter (O) or (M)")
         sys.exit()
@@ -165,18 +164,22 @@ if __name__ == '__main__':
     elif filetype == "D":
         fn = input("Enter the dataframes's path: ")
         if multiple == "O":
-            # dev = int(input("Enter the device to plot: "))
-            # conc = float(input("Enter the concentration to plot: "))
-            dev = 3
-            conc = 10.0
+            dev = int(input("Enter the device to plot: "))
+            conc = float(input("Enter the concentration to plot: "))
             multiple = [dev, conc]
+        else:
+            sep = input("Would you like to separate by concentration (Y/N)? ")
+            if sep == "Y":
+                sep == True
+            else:
+                sep == False
 
         if vgramtype == "A":
             vgrams = ["R", "L", "S", "D"]
 
             for vgram in vgrams:
                 datadict, ylabel, ytitle = makedicts(fn, vgram, multiple)
-                plotdataframe(datadict)
+                plotdataframe(datadict, sep)
                 plt.ylabel(ylabel, weight='bold', fontsize=12)
                 plt.title(ytitle, weight='bold', fontsize=15)
                 figformat()
@@ -184,9 +187,10 @@ if __name__ == '__main__':
         else:
             # voltammogram from dataframe
             datadict, ylabel, ytitle = makedicts(fn, vgramtype, multiple)
-            plotdataframe(datadict)
+            plotdataframe(datadict, sep)
             plt.ylabel(ylabel, weight='bold', fontsize=12)
             plt.title(ytitle, weight='bold', fontsize=15)
+            figformat()
 
     else:
         print("Invalid input, enter (R), (L), (S), (D), or (A)")

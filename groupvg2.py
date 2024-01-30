@@ -224,8 +224,8 @@ if __name__ == '__main__':
     if not os.path.exists(folder):
         sys.exit("Error: invalid file path")
 
-    custom = input("Would you like to specify the analysis parameters (Y/N)? Default: peak curvature, smoothing = "
-                   "0.006, stiffness = 0, vwidth = 0.15")
+    custom = input("Would you like to specify the analysis parameters (Y/N)?( Default: peak curvature, smoothing = "
+                   "0.006, stiffness = 0, vwidth = 0.15) ")
 
     if custom == "Y":
         do_loginput = bool(input("Do you want to log-transform? (1: log, 0: no log): "))
