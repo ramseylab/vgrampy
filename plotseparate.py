@@ -5,6 +5,7 @@ import matplotlib.ticker as ticker
 from matplotlib.ticker import MultipleLocator
 import sys
 import pandas as pd
+from operator import itemgetter
 
 """
 plotraw(filename, labels)
@@ -109,7 +110,10 @@ def plotdataframe
 def plotdataframe(datadf, sep):
     colors = ['tab:orange', 'tab:blue', 'tab:orange', 'tab:red', 'tab:green', 'black']  # colors to plot different concs
     colorconc = dict()
-    for key, val in datadf.items():
+    keys = sorted(datadf.keys(), key=itemgetter(0))
+    for key in keys:
+        val = datadf[key]
+        print(key)
         labelname = str(key[0]) + ' \u03BCM'
 
         if key[0] not in colorconc.keys():
@@ -183,7 +187,6 @@ if __name__ == '__main__':
                 plt.ylabel(ylabel, weight='bold', fontsize=12)
                 plt.title(ytitle, weight='bold', fontsize=15)
                 figformat()
-                plt.show()
         else:
             # voltammogram from dataframe
             datadict, ylabel, ytitle = makedicts(fn, vgramtype, multiple)

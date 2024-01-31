@@ -89,7 +89,7 @@ For example `dataframe_log_curvature_0.006_0_0.15.xlsx`
 | 0    | 1         | 0.516 | 0.8797  | -0.18492 | -0.18001 | 0        |
 | 0    | 1         | 0.520 | 0.9069  | -0.14098 | -0.14420 | 0        | 
 
-2. ### A signal excel file that has the signal, peak voltage, and voltage center for each replicate:
+### 2. A signal excel file that has the signal, peak voltage, and voltage center for each replicate:
 
 | file                    | signal   | peak V | vcenter |
 |-------------------------|----------|--------|---------|
@@ -97,7 +97,7 @@ For example `dataframe_log_curvature_0.006_0_0.15.xlsx`
 | 2024_01_02_cbz15_01.txt | 324.8372 | 1.074  | 1.076   |
 | 2024_01_02_cbz15_02.txt | 236.3741 | 1.061  | 1.064   |
 
-3. ### A stats excel file that has the signal, peak voltage, and voltage center for each replicate:
+### 3. A stats excel file that has the signal, peak voltage, and voltage center for each replicate:
 
 | conc      | average | std   | CV    | T-Statistic | avg peak | std peak |
 |-----------|---------|-------|-------|-------------|----------|----------|
@@ -110,7 +110,7 @@ For example `dataframe_log_curvature_0.006_0_0.15.xlsx`
 
 # Troubleshooting:
 
-### Problem: When I try to switch my branch to user-friendly I get the error: 
+### 1.  Problem: When I try to switch my branch to user-friendly I get the error: 
 
 ```
 Exception of type 'Microsoft.TeamFoundation.Git.Contracts.GitCheckoutConflictException' was thrown`"
@@ -120,7 +120,7 @@ This means that the destination branch has more exclusions in .gitignore than th
 **Solution:** in the Git changes, 'ignore' the .suo (or .wsuo) file and then do a force checkout to get to your desired branch.
 
 
-### Problem: When I am installing the packages, I get an error with `scikit-fda`
+### 2. Problem: When I am installing the packages, I get an error with `scikit-fda`
 
 This means that you are not using Python 3.9
 
@@ -129,7 +129,7 @@ This means that you are not using Python 3.9
 - Install Python 3.9 and change your interpreter to the correct version
 
 
-### Problem: I cannot access the vgrampy github
+### 3. Problem: I cannot access the vgrampy github
 
 You need to be added by an admin in order to access the code (currently Noel)
 
