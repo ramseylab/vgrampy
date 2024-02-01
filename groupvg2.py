@@ -155,16 +155,16 @@ def run_folderpath(folderpath):
     do_log = True  # log param
     p_f = 1  # 1:curvature, 2:height, 3:area
     # change below to try different params
-    bw_lst = [0.006]
+    smoothing_lst = [0.006]
     stiffness_lst = [0]  # np.arange(0, 0.001, 0.001)
-    vwidth1_lst = [0.15]  # np.arange(0.13,0.20,0.01)
-    for s in stiffness_lst:
-        print("stiffness=", s)
-        for bw in bw_lst:
-            print("bw=", bw)
-            for w in vwidth1_lst:
-                print("vwidth=", w)
-                run_vg2(folderpath, do_log, p_f, bw, s, w)
+    vwidth_lst = [0.15]  # np.arange(0.13,0.20,0.01)
+    for stiffness in stiffness_lst:
+        print("stiffness=", stiffness)
+        for smoothing in smoothing_lst:
+            print("bw=", smoothing)
+            for vwidth in vwidth_lst:
+                print("vwidth=", vwidth)
+                run_vg2(folderpath, do_log, p_f, smoothing, stiffness, vwidth)
 
 
 """

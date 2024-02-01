@@ -21,48 +21,53 @@ analyte peak).
 So far, this software has only been tested on Windows11/x86_64. It has 
 not been tested on MacOS 12.6.5 on Apple M1, Linux/x86_64, etc.
 
-# How to install and run `groupvg2.py` for `user-friendly` branch:
+# How to install and run `groupvg2.py` for `noel` branch:
 
-1. Download Python 3.9 (can be 3.9.0-3.9.12)
+### 1. Download Python 3.9 (can be 3.9.0-3.9.12)
    1. make sure to select `Add Python 3.9 to PATH` when you install it
 
 
-2. Download a coding application/IDE (i.e. VisualStudio, VSCode, PyCharm)
+### 2. Download a coding application/IDE (i.e. VisualStudio, VSCode, PyCharm)
 
 
-3. Clone the software repo (2 ways)
-   1. sign into your github through the IDE
-   2. paste the repo address: `https://github.com/ramseylab/vgrampy.git`
+### 3. Clone the software repo (2 ways)
+   - sign into your github through the IDE
+   - paste the repo address: `https://github.com/ramseylab/vgrampy.git`
 
 
-4. Change to the correct branch- for running for one experiment use `user-friendly`
-   1. for VisualStudio- on the right side click `Git Changes` and change the drop-down menu
+### 4. Change to the correct branch- for running for one experiment use `noel`
+- for VisualStudio- on the right side click `Git Changes` and change the drop-down menu
 
 
-5. Open the command prompt and change your directory to the software repo `cd grampy`
-   1. if you open the command prompt within your IDE, it should already be in the right directory
+### 5. Open the command prompt and change your directory to the software repo `cd grampy`
+- if you open the command prompt within your IDE, it should already be in the right directory
 
 
-6. Install all of the required packages:
+### 6. Install all of the required packages:
 ```dockerignore
 pip install numpy
 ```
 - depending on your computer, it may be `pip` or `pip3`
 - most packages will be install when creating the virtual environment
 
-7. Run the program by typing in 
+### 7. Select the range of parameters to test
+within the `run_folderpath` function, you can change:
+- **Log-Transformation**: log-transform (`True`) or not (`False`)
+- **Peak Feature**: peak curvature (`1`), height (`2`), or area (`3`)
+- **Smoothing Parameter**: amount of smoothing the voltammogram (`smoothing_lst = []`)
+- **Stiffness Parameter**: how strictly the spline passes through the data points (`stiffness_lst = []`)
+- **Window Width**: voltage width to window out when making the spline (`vwidth_lst = []`)
+
+
+### 8. Run the program by typing in 
 ```
 python groupvg2.py
 ```
 - depending on your computer, it may be `python` or `python3` or `py`
 
-# Options for `groupvg2.py`:
-
-- Vwidth
-
 # Troubleshooting:
 
-### Problem: When I try to switch my branch to user-friendly I get the error: 
+### Problem: When I try to switch my branch to noel I get the error: 
 
 ```
 Exception of type 'Microsoft.TeamFoundation.Git.Contracts.GitCheckoutConflictException' was thrown`"
