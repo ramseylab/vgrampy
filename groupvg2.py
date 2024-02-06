@@ -224,7 +224,7 @@ if __name__ == '__main__':
     if not os.path.exists(folder):
         sys.exit("Error: invalid file path")
 
-    custom = input("Would you like to specify the analysis parameters (Y/N)?( Default: peak curvature, smoothing = "
+    custom = input("Would you like to specify the analysis parameters (Y/N)?( Default: peak area, smoothing = "
                    "0.006, stiffness = 0, vwidth = 0.15) ")
 
     if custom == "Y":
@@ -245,7 +245,7 @@ if __name__ == '__main__':
         vwidthinput = float(input("Enter the window width: "))
     else:
         do_loginput = True  # log param
-        peak_featinput = 1  # 1:curvature, 2:height, 3:area
+        peak_featinput = 3 # 1:curvature, 2:height, 3:area
         smoothing_bwinput = 0.006  # smoothing bandwidth param
         stiffnessinput = 0  # stiffness param
         vwidthinput = 0.15  # detilt window width
