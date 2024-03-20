@@ -18,12 +18,14 @@ get_num_header_lines
 def get_num_header_lines(file_obj: typing.TextIO) -> int:
     line_ctr = 0
     ret_ctr = None
+    omit_start = None
+    omit_end = None
     for line in file_obj:
         line_ctr += 1
-        if line.startswith("Potential/V"):
-            ret_ctr = line_ctr
+        if line.startswith("0.852"):
+            omit_end = line_ctr
     file_obj.seek(0)
-    return ret_ctr
+    return omit_end
 
 
 """
@@ -35,7 +37,7 @@ read_raw_vg_as_df
 
 def read_raw_vg_as_df(filename: str) -> pandas.DataFrame:
     with open(filename, "r") as input_file:
-        header_nlines = get_num_header_lines(input_file)
+        omit_e = get_num_header_lines(input_file)
         # a single chain of method calls can produce the desired
         # two-column dataframe, with negative current in the "I"
         # column and with the voltage in the "V" column
@@ -43,17 +45,13 @@ def read_raw_vg_as_df(filename: str) -> pandas.DataFrame:
             input_file,
             sep=", ",
             engine="python",
-            skiprows=header_nlines - 1
-        ).drop(
-            columns=["For(i/A)", "Rev(i/A)"]
-        ).rename(
-            columns={"Potential/V": "V",
-                     "Diff(i/A)": "I"}
+            skiprows=omit_e-1,
+            usecols=[0, 1],
+            names=["V", "I"]
         ).apply(
             lambda r: [r[0], -1E+6 * r[1]],
             axis=1,
             raw=True)
-
 
 """
 make_shoulder_getter
