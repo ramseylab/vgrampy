@@ -42,7 +42,6 @@ def plot_raw(filename, labels, colorslst):
                 plt.ylabel("current ($\mu$A)", weight='bold', fontsize=12)
                 plt.title("raw voltammogram", weight='bold', fontsize=15)
                 plt.xlabel("potential (V)", weight='bold', fontsize=12)
-                plt.show()
             newcolor = colorslst.pop()
             plt.plot(xs, ys, color=newcolor, label=conc_str)
             labels[conc_str] = newcolor
@@ -155,6 +154,7 @@ if __name__ == '__main__':
             plot_raw(fn, ls, colors)
         plt.ylabel("current ($\mu$A)", weight='bold', fontsize=12)
         plt.title("raw voltammogram", weight='bold', fontsize=15)
+        plt.show()
 
     elif filetype == "D":  # if plotting from a dataframe
         fn = input("Enter the dataframes's path: ")
