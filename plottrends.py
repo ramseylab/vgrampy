@@ -35,7 +35,7 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 	xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
 	titlename = folder[folder.rfind("/")+1:]
 	colors = ['tab:orange', 'tab:green', 'tab:blue', 'tab:red', 'tab:purple']
-	shapes = ['o','s','v','X']
+	shapes = ['.',"|",'.','_']
 	cnt = 0
 	#ax1 = pltn.subplots()
 	ax1 = pltn
@@ -47,7 +47,8 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 				currentidx = concs_targetlst.index(key)
 				prevval = concs_targetlst[currentidx - 1]
 				labelname = key + " & " + prevval + " samples"
-				ax1.scatter(gdict[key][0],gdict[key][1],label=labelname,color=colors[cnt],facecolors='none',marker=shapes[cnt])
+				ax1.scatter(gdict[key][0], gdict[key][1], label=labelname, color=colors[cnt], marker=shapes[cnt])
+			# ax1.scatter(gdict[key][0],gdict[key][1],label=labelname,color=colors[cnt],facecolors='none',marker=shapes[cnt])
 			else:
 				ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
 		cnt +=1
@@ -74,10 +75,10 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 	#ax1.legend(bbox_to_anchor=(0, 2), loc='upper right',prop={'size': 7})
 	#ax1.legend(bbox_to_anchor=(0.3, 0.65),prop={'size': 13}) #tstat 0.7,0.65=top R,
 	ax1.legend(prop={'size': 13})
-	#plt.show()
-	figtitle = trendstr+stat+'png'
-	plt.savefig(figtitle)
-	plt.close()
+	plt.show()
+	# figtitle = trendstr+stat+'png'
+	# plt.savefig(figtitle)
+	# plt.close()
 
 def plot_double_trend(pltn,folder,trend,zeros):
 	xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
@@ -266,24 +267,26 @@ if __name__ == '__main__':
 		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC4/vwidth', 4),
 		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC5/vwidth', 4),
 
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/smooth', 1),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/smooth', 1),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/smooth', 1),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/stiff', 2),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/stiff', 2),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/stiff', 2),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/vwidth', 4),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/vwidth', 4),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/vwidth', 4),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/smooth', 1),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/smooth', 1),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/smooth', 1),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/stiff', 2),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/stiff', 2),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/stiff', 2),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/vwidth', 4),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/vwidth', 4),
-		('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/vwidth', 4),
+
+
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/smooth', 1),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/stiff', 2),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/vwidth', 4),
+		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/vwidth', 4),
+		('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/pclog/LC5/vwidth', 4),
 	]
 	# savefolders = [
 	# 	'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC3/smooth',  # 2023_12_12_LowConc3',
