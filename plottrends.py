@@ -47,38 +47,52 @@ def plot_trend(pltn,folder,trend,stat,zeros):
 				currentidx = concs_targetlst.index(key)
 				prevval = concs_targetlst[currentidx - 1]
 				labelname = key + " & " + prevval + " samples"
-				ax1.scatter(gdict[key][0], gdict[key][1], label=labelname, color=colors[cnt], marker=shapes[cnt])
+				xlist = gdict[key][0]
+				ylist = gdict[key][1]
+				# ax1.scatter(gdict[key][0], gdict[key][1], label=labelname, color=colors[cnt], marker=shapes[cnt])
+				ax1.scatter(xlist[0::3], ylist[0::3], label=labelname, color=colors[cnt], marker=shapes[cnt])
 			# ax1.scatter(gdict[key][0],gdict[key][1],label=labelname,color=colors[cnt],facecolors='none',marker=shapes[cnt])
 			else:
-				ax1.scatter(gdict[key][0],gdict[key][1],label=key,color=colors[cnt],marker=shapes[cnt])
+				currentidx = concs_targetlst.index(key)
+				prevval = concs_targetlst[currentidx - 1]
+				labelname = key + " & " + prevval + " samples"
+				xlist = gdict[key][0]
+				ylist = gdict[key][1]
+				# ax1.scatter(gdict[key][0], gdict[key][1], label=labelname, color=colors[cnt], marker=shapes[cnt])
+				ax1.scatter(xlist[0::3], ylist[0::3], label=labelname, color=colors[cnt], marker=shapes[cnt])
+
 		cnt +=1
 
 	#ax1.xscale('log')
 	if stat == "CV":
 		ax1.set_ylim(0,0.90)
-		ax1.set_ylabel("signal CV", weight='bold', fontsize=15)
+		ax1.set_ylabel("signal CV", fontsize=20)
 	else:
 		ax1.set_ylim(-1,15)
-		ax1.set_ylabel("t-statistic", weight='bold', fontsize=15)
+		ax1.set_ylabel("t-statistic", fontsize=20)
 	if trend == 2:
 		ax1.set_xscale('log')
-		ax1.set_xlabel('stiffness', weight='bold', fontsize=15)
+		ax1.set_xlabel('stiffness', fontsize=20)
 		trendstr = 'stiffness'
 	elif trend == 4:
-		ax1.set_xlabel('window width', weight='bold', fontsize=15)
+		ax1.set_xlabel('window width/V', fontsize=20)
 		trendstr = 'vwidth'
 	elif trend == 1:
-		ax1.set_xlabel('smoothing', weight='bold', fontsize=15)
+		ax1.set_xlabel('smoothing', fontsize=20)
 		trendstr = 'smooth'
 
 	#ax1.set_title(titlename)
 	#ax1.legend(bbox_to_anchor=(0, 2), loc='upper right',prop={'size': 7})
 	#ax1.legend(bbox_to_anchor=(0.3, 0.65),prop={'size': 13}) #tstat 0.7,0.65=top R,
 	ax1.legend(prop={'size': 13})
-	plt.show()
-	# figtitle = trendstr+stat+'png'
-	# plt.savefig(figtitle)
-	# plt.close()
+	#plt.show()
+	figtitle = trendstr+stat+'.png'
+	#print('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/'+figtitle)
+	dataset = folder[folder.find("LC"):folder.find("LC")+3]
+	pcname = folder[folder.find("pc"):folder.find("pc")+3]
+	# print(dataset)
+	plt.savefig('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/'+dataset+pcname+figtitle, bbox_inches='tight')
+	plt.close()
 
 def plot_double_trend(pltn,folder,trend,zeros):
 	xlabels = ["smoothing_bw","stiffness","vcenter","vwidth1","vwidth2"]
@@ -267,26 +281,43 @@ if __name__ == '__main__':
 		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC4/vwidth', 4),
 		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC5/vwidth', 4),
 
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/panolog/LC3/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/panolog/LC4/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/panolog/LC5/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/panolog/LC3/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/panolog/LC4/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/panolog/LC5/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/panolog/LC3/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/panolog/LC4/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/panolog/LC5/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/palog/LC3/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/palog/LC4/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/palog/LC5/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/palog/LC3/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/palog/LC4/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/palog/LC5/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/palog/LC3/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/palog/LC4/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/palog/LC5/vwidth', 4),
 
-
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/smooth', 1),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/smooth', 1),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/smooth', 1),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/stiff', 2),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/stiff', 2),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/stiff', 2),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC3/vwidth', 4),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC4/vwidth', 4),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pcnolog/LC5/vwidth', 4),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/smooth', 1),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/smooth', 1),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/smooth', 1),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/stiff', 2),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/stiff', 2),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC5/stiff', 2),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC3/vwidth', 4),
-		# ('C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/pclog/LC4/vwidth', 4),
-		('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/pclog/LC5/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phnolog/LC3/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phnolog/LC4/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phnolog/LC5/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phnolog/LC3/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phnolog/LC4/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phnolog/LC5/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phnolog/LC3/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phnolog/LC4/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phnolog/LC5/vwidth', 4),
+		('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phlog/LC3/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phlog/LC4/smooth', 1),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phlog/LC5/smooth', 1),
+		('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phlog/LC3/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phlog/LC4/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phlog/LC5/stiff', 2),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phlog/LC3/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phlog/LC4/vwidth', 4),
+		# ('C:/Users/temp/Box/Fu Lab/Noel/CBZdata/vgrampymanuscriptdata/manuscript4/phlog/LC5/vwidth', 4),
 	]
 	# savefolders = [
 	# 	'C:/Users/lefevrno/Box/Fu Lab/Noel/CBZdata/manuscript4/phlog/LC3/smooth',  # 2023_12_12_LowConc3',
@@ -300,6 +331,7 @@ if __name__ == '__main__':
 		#driver(f, 'CV', 1)
 		#driver(f, 'CV', 2)
 		#driver(f, 'CV', 4)
+		driver(f, 'CV', p)
+
 		driver(f, 'T-Statistic', p)
-		#driver(f, 'T-Statistic', 2)
 		#driver(f, 'T-Statistic', 4)
