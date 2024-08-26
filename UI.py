@@ -16,7 +16,7 @@ class App(ctk.CTk):
 
         # configure window
         self.title("Vgram Analysis")
-        self.geometry("430x520")
+        self.geometry("430x580")
         self.resizable(False, False)
 
         # Override the window close event
@@ -63,6 +63,14 @@ class App(ctk.CTk):
         self.ob2_label.grid(row=2, column=0, padx=10, pady=(0), sticky="sw")
         self.ob2 = ctk.CTkComboBox(master=self.ob_frame, values=["Curvature", "Height", "Area"])
         self.ob2.grid(row=3, column=0, pady=(0,5), padx=(10, 48), sticky="nw")
+        self.svi_label = ctk.CTkLabel(master=self.ob_frame, text="Start Voltage")
+        self.svi_label.grid(row=4, column=0, padx=10, pady=(0), sticky="sw")
+        self.svi = ctk.CTkEntry(master=self.ob_frame, placeholder_text="Text input")
+        self.svi.grid(row=5, column=0, pady=(0,5), padx=(10, 48), sticky="nw")
+        self.ac_label = ctk.CTkLabel(master=self.ob_frame, text="Analyate Code")
+        self.ac_label.grid(row=6, column=0, padx=10, pady=(0), sticky="sw")
+        self.ac = ctk.CTkEntry(master=self.ob_frame, placeholder_text="Text input")
+        self.ac.grid(row=7, column=0, pady=(0,5), padx=(10, 48), sticky="nw")
         
         self.ti1_label = ctk.CTkLabel(master=self.ob_frame, text="Smoothing")
         self.ti1_label.grid(row=0, column=1, padx=(10, 10), pady=(5, 0), sticky="se")
@@ -76,6 +84,10 @@ class App(ctk.CTk):
         self.ti3_label.grid(row=4, column=1, padx=(10, 10), pady=(0), sticky="se")
         self.vwidth_input = ctk.CTkEntry(master=self.ob_frame, placeholder_text="Text input")
         self.vwidth_input.grid(row=5, column=1, pady=(0,10), padx=(10, 10), sticky="ne")
+        self.pvr_label = ctk.CTkLabel(master=self.ob_frame, text="Peak Voltage Range")
+        self.pvr_label.grid(row=6, column=1, padx=(10, 10), pady=(5, 0), sticky="se")
+        self.pvr = ctk.CTkEntry(master=self.ob_frame, placeholder_text="Text input")
+        self.pvr.grid(row=7, column=1, pady=(0,5), padx=(10, 10), sticky="ne")
 
         #self.op_frame = ctk.CTkFrame(self)
         #self.op_frame.grid(row=2, column=1, columnspan=2, padx=(10, 20), pady=(10, 20), sticky="nsew")
@@ -86,12 +98,16 @@ class App(ctk.CTk):
 
         # set default values
         self.sep_plot_cb.configure(state='disabled')
-        self.file_path_input.insert("1.0", 'Enter path to folder(s) containing data, one per line.')
+        self.file_path_input.insert("1.0", 'Enter path to folder(s) containing data, one per line. \n')
+        self.file_path_input.insert("2.0", 'Text Files must be named as: \n \"YYYY_MM_DD_<Analyte Code><Concentration>_<Test Number>\"')
         self.smooth_input.insert("0", '0.006')
         self.stiff_input.insert("0", '0')
         self.vwidth_input.insert("0", "0.15")
         self.ob1.set("Yes")
         self.ob2.set("Area")
+        self.svi.insert("0", "0.852")
+        self.ac.insert("0", "cbz")
+        self.pvr.insert("0", '1.0,1.1')
 
 
     # Function to enable/disable "Sep Plot" checkbox based on "Plot" checkbox state
@@ -118,6 +134,11 @@ class App(ctk.CTk):
             smoothing_bwinput = float(self.smooth_input.get())
             stiffnessinput = float(self.stiff_input.get())
             vwidthinput = float(self.vwidth_input.get())
+            v_start = self.svi.get()
+            type_id = self.ac.get()
+            vrange_list = self.pvr.get().split(",")
+            pvmin = float(vrange_list[0])
+            pvmax = float(vrange_list[1])
 
             if self.sep_sheet_cb_var.get():
                 # Separate files into folders based on sheet number
@@ -152,7 +173,11 @@ class App(ctk.CTk):
                     peak_featinput,
                     smoothing_bwinput,
                     stiffnessinput,
-                    vwidthinput
+                    vwidthinput,
+                    type_id,
+                    v_start,
+                    pvmin,
+                    pvmax
                 )
 
             if self.tran_cb_var.get():
@@ -176,10 +201,26 @@ class App(ctk.CTk):
                                 output_file_path = os.path.join(root, 'transformed_dataframe.xlsx')
                                 with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
                                     df_pivot.to_excel(writer, index=False)
+            
+            self.show_popup()
 
         except ValueError as e:
-            tkinter.messagebox.showerror("Input Error", f"Invalid input: {e}")
-
+            tkinter.messagebox.showerror("Error", f"Invalid Analyate Code: {e}")
+        except TypeError as e:
+            tkinter.messagebox.showerror("Error", f"Invalid Start Voltage: {e}")
+    
+    def show_popup(self):
+        popup = ctk.CTkToplevel(self)
+        popup.title("Read Me")
+        popup.geometry("300x150")
+        popup.grab_set()  # Grab focus
+        popup.lift()  # Bring to the top
+        label = ctk.CTkLabel(popup, text="Script has finished running")
+        label.pack(pady=20)
+        button = ctk.CTkButton(popup, text="OK", command=popup.destroy)
+        button.pack(pady=10)
+        popup.focus_force()  # Force focus
+    
     def on_closing(self):
         self.destroy()
         self.quit()

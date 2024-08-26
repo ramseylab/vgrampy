@@ -43,7 +43,7 @@ run_vg2
 """
 
 
-def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth):
+def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max):
     # get filenames to save
     data_str = make_xlsx_str(do_log, peak_feature, smoothing_bw, stiffness, vwidth)
     vg_dict = dict()
@@ -59,9 +59,12 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth):
                                                                                peak_feature,
                                                                                smoothing_bw,
                                                                                vwidth,
-                                                                               stiffness)
+                                                                               stiffness,
+                                                                               v_start,
+                                                                               pv_min,
+                                                                               pv_max)
 
-            idx1 = filename.rfind("cbz")
+            idx1 = filename.rfind(type_id)
             idx2 = filename[idx1:].find("_")
             conc = filename[idx1 + 3:idx1 + idx2]
             replicate = filename[idx1 + idx2 + 1:filename.rfind(".")]
@@ -209,8 +212,8 @@ run_folderpath(folderpath: folder to run program)
 """
 
 
-def run_folderpath(folderpath, toplot, sep, do_log, peak_feat, smoothing_bw, stiffness, vwidth):
-    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth)
+def run_folderpath(folderpath, toplot, sep, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max):
+    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
 
     if toplot:
         print("Saving Plots...")
@@ -225,7 +228,7 @@ if __name__ == '__main__':
         sys.exit("Error: invalid file path")
 
     custom = input("Would you like to specify the analysis parameters (Y/N)?( Default: peak area, smoothing = "
-                   "0.006, stiffness = 0, vwidth = 0.15) ")
+                   "0.006, stiffness = 0, vwidth = 0.15, peak range = 1,1.1) ")
 
     if custom == "Y":
         do_loginput = bool(input("Do you want to log-transform? (1: log, 0: no log): "))
@@ -243,13 +246,20 @@ if __name__ == '__main__':
             sys.exit("Error: invalid stiffness")
 
         vwidthinput = float(input("Enter the window width: "))
+        vrange_list = input("Enter the area around the peak as <min>,<max>: ").split(",")
+        pvmin = float(vrange_list[0])
+        pvmax = float(vrange_list[1])
     else:
         do_loginput = True  # log param
         peak_featinput = 3 # 1:curvature, 2:height, 3:area
         smoothing_bwinput = 0.006  # smoothing bandwidth param
         stiffnessinput = 0  # stiffness param
         vwidthinput = 0.15  # detilt window width
+        pv_min = 1
+        pv_max = 1.1
 
+    d_type_id = input("Enter the three letter code for your analyte: ")
+    voltage_start = input("Enter the starting \'Potential\\V\' from your text files: ")
 
     plot = input("Would you like to plot? (Y/N): ")
     sepplot = False
@@ -265,4 +275,4 @@ if __name__ == '__main__':
 
     # run vg2 for file
     print("Processing: " + folder)
-    run_folderpath(folder, plot, sepplot, do_loginput, peak_featinput, smoothing_bwinput, stiffnessinput, vwidthinput)
+    run_folderpath(folder, plot, sepplot, do_loginput, peak_featinput, smoothing_bwinput, stiffnessinput, vwidthinput, d_type_id, voltage_start, pv_min, pv_max)
