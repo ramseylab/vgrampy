@@ -39,7 +39,7 @@ not been tested on MacOS 12.6.5 on Apple M1, Linux/x86_64, etc.
    1. for VisualStudio- on the right side click `Git Changes` and change the drop-down menu
 
 
-5. Open the command prompt and change your directory to the software repo `cd grampy`
+5. Open the command prompt and change your directory to the software repo `cd vgrampy`
    1. if you open the command prompt within your IDE, it should already be in the right directory
 
 
