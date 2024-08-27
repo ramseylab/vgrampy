@@ -5,7 +5,9 @@ import groupvg2 as vg
 import pandas as pd
 import tkinter
 import tkinter.messagebox
+import threading
 import customtkinter as ctk
+import time
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -23,16 +25,14 @@ class App(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         
         # configure grid layout (3x3)
-        #self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure((0, 1), weight=0)
-        #self.grid_rowconfigure(1, weight=0)
         self.grid_rowconfigure((0, 1), weight=0)
 
         # Text input for file path(s)
         self.file_path_input = ctk.CTkTextbox(self, height=100)
         self.file_path_input.grid(row=0, column=0, columnspan=2, padx=20, pady=(20, 10), sticky="nsew")
 
-        # Checkboxes for plot and sep plot
+        # Setup checkboxes for output  options
         self.cb_frame = ctk.CTkFrame(self)
         self.cb_frame.grid(row=1, column=0, columnspan=2, padx=(20,20), pady=(10,10), sticky="nsew")
         self.plot_cb_var = ctk.BooleanVar()
@@ -48,11 +48,7 @@ class App(ctk.CTk):
         self.sep_sheet_cb = ctk.CTkCheckBox(master=self.cb_frame, text="Separate Conditions", variable=self.sep_sheet_cb_var, onvalue=True, offvalue=False)
         self.sep_sheet_cb.grid(row=1, column=1, pady=10, padx=20, sticky="n")
 
-        # Label for spacing
-        #self.label = ctk.CTkLabel(master=self.cb_frame, text="", width=100)
-        #self.label.grid(row=0, column=1, padx=20, pady=10)
-
-        # Option boxes and text inputs
+        # Setup option boxes and text inputs for analysis options
         self.ob_frame = ctk.CTkFrame(self)
         self.ob_frame.grid(row=2, column=0, columnspan=2, padx=(20, 20), pady=(10, 20), sticky="nsew")
         self.ob1_label = ctk.CTkLabel(master=self.ob_frame, text="Do log input?")
@@ -89,14 +85,11 @@ class App(ctk.CTk):
         self.pvr = ctk.CTkEntry(master=self.ob_frame, placeholder_text="Text input")
         self.pvr.grid(row=7, column=1, pady=(0,5), padx=(10, 10), sticky="ne")
 
-        #self.op_frame = ctk.CTkFrame(self)
-        #self.op_frame.grid(row=2, column=1, columnspan=2, padx=(10, 20), pady=(10, 20), sticky="nsew")
+        # Run analysis button
+        self.run_button = ctk.CTkButton(self, text="Run Analysis", command=self.start_analysis)
+        self.run_button.grid(row=3, column=0, columnspan=2, pady=(0,10), padx=20, sticky="nsew")
 
-        # Button at the bottom
-        self.submit_button = ctk.CTkButton(self, text="Run Analysis", command=self.analyze)
-        self.submit_button.grid(row=3, column=0, columnspan=2, pady=(0,10), padx=20, sticky="nsew")
-
-        # set default values
+        # Set default values for all options
         self.sep_plot_cb.configure(state='disabled')
         self.file_path_input.insert("1.0", 'Enter path to folder(s) containing data, one per line. \n')
         self.file_path_input.insert("2.0", 'Text Files must be named as: \n \"YYYY_MM_DD_<Analyte Code><Concentration>_<Test Number>\"')
@@ -105,9 +98,9 @@ class App(ctk.CTk):
         self.vwidth_input.insert("0", "0.15")
         self.ob1.set("Yes")
         self.ob2.set("Area")
-        self.svi.insert("0", "0.852")
-        self.ac.insert("0", "cbz")
-        self.pvr.insert("0", '1.0,1.1')
+        self.svi.insert("0", "0.852") #"0.902") 
+        self.ac.insert("0", "cbz") #"oxc") 
+        self.pvr.insert("0", '1.0,1.1') #'1.55,1.65') 
 
 
     # Function to enable/disable "Sep Plot" checkbox based on "Plot" checkbox state
@@ -118,7 +111,8 @@ class App(ctk.CTk):
             self.sep_plot_cb.deselect()
             self.sep_plot_cb.configure(state='disabled')
     
-    def analyze(self):
+    # Function to run analysis
+    def analyze(self, popup):
         try:    
             log_options = {"Yes":True, "No":False}
             peak_options = {"Curvature":1, "Height":2, "Area":3}
@@ -161,7 +155,7 @@ class App(ctk.CTk):
                     new_file_paths.extend([os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))])
 
                 file_paths = new_file_paths
-
+            # Run analysis for all conditions
             for path in file_paths:
                 folder_path=path.strip()
                 print(folder_path)
@@ -179,7 +173,7 @@ class App(ctk.CTk):
                     pvmin,
                     pvmax
                 )
-
+            # Rotate dataframe for easier graphing
             if self.tran_cb_var.get():
                 for path in file_paths:
                     for root, dirs, files in os.walk(path):
@@ -202,25 +196,47 @@ class App(ctk.CTk):
                                 with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
                                     df_pivot.to_excel(writer, index=False)
             
-            self.show_popup()
+            #self.show_popup()
+                    # Update popup to show "Done!" when the task is finished
+            self.update_popup(self.label, "Done!")
+        
+            # Re-enable the start button
+            self.run_button.configure(state="normal")
 
+        # Notify the user of errors
         except ValueError as e:
-            tkinter.messagebox.showerror("Error", f"Invalid Analyate Code: {e}")
+            tkinter.messagebox.showerror("Value Error", f"Invalid Analyate Code: {e}")
         except TypeError as e:
-            tkinter.messagebox.showerror("Error", f"Invalid Start Voltage: {e}")
+            tkinter.messagebox.showerror("Type Error", f"Invalid Start Voltage: {e}")
     
+    # Function to notify of script progress
     def show_popup(self):
         popup = ctk.CTkToplevel(self)
         popup.title("Read Me")
         popup.geometry("300x150")
         popup.grab_set()  # Grab focus
         popup.lift()  # Bring to the top
-        label = ctk.CTkLabel(popup, text="Script has finished running")
-        label.pack(pady=20)
-        button = ctk.CTkButton(popup, text="OK", command=popup.destroy)
-        button.pack(pady=10)
+        
+        self.label = ctk.CTkLabel(popup, text="Processing, please wait...")
+        self.label.pack(pady=20)
+
         popup.focus_force()  # Force focus
+        return popup
+
+    # Update the processing popup
+    def update_popup(self, label, message):
+        label.configure(text=message)
+
+    # Start analysis in a new thread
+    def start_analysis(self):
+        # Disable the start button to prevent multiple simultaneous analyses
+        popup = self.show_popup()
+        self.run_button.configure(state="disabled")
+        time.sleep(1)     
+        # Start analysis in a new thread
+        threading.Thread(target=self.analyze, args=(popup,)).start()
     
+    # Function to ensure all processes are killed on exit
     def on_closing(self):
         self.destroy()
         self.quit()
