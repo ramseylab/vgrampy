@@ -91,6 +91,11 @@ For example `dataframe_log_curvature_0.006_0_0.15.xlsx`
 
 ### 2. A signal excel file that has the signal, peak voltage, and voltage center for each replicate:
 
+In the file, the `vcenter` column contains the voltage value, for each voltammogram,
+of the inflection point identified by the "shoulder getter" function; and the `peak V`
+column contains the voltage value, for each voltammogram, at which the background-subtracted
+voltammogram has a critical point within the censoring window.
+
 | file                    | signal   | peak V | vcenter |
 |-------------------------|----------|--------|---------|
 | 2024_01_02_cbz00_01.txt | 23.9020  | 1.083  | 1.012   |
