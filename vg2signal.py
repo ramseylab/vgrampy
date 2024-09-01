@@ -84,10 +84,7 @@ def make_shoulder_getter(vstart: float,
         if len(roots_ddd) == 1:
             v_peak = float(roots_ddd[0])
         elif len(roots_ddd) > 1:  # if multiple third derivatives
-            minsecond = min(spl_mdl_dd_pred)
-            idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
-            vin = list(v[v_in])
-            v_peak = vin[idx]
+            v_peak = list(v[v_in])[spl_mdl_dd_pred.argmin()]
         else:  # if no third derivative, get minimum of second derivative
             minsecond = min(spl_mdl_dd_pred)
             idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
