@@ -5,6 +5,7 @@ import sys
 import pandas as pd
 import scipy.stats as stats
 import matplotlib.pyplot as plt
+import io
 
 """
 make_xlsx_str
@@ -219,7 +220,9 @@ def run_folderpath(folderpath, toplot, sep, do_log, peak_feat, smoothing_bw, sti
 
 
 if __name__ == '__main__':
-    # folderpath to analyze
+    # folderpath to analyze]]
+    sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0),
+                                  write_through=True)  # StackOverflow:107705
     folder = input("Enter the path to analyze: ")
     if not os.path.exists(folder):
         sys.exit("Error: invalid file path")
