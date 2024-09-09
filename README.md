@@ -1,7 +1,7 @@
 # vgrampy
 
-### Author: Stephen Ramsey
-### Date: June 26, 2023
+### Author: Noel Lefevre (Adapted from Steven Ramsey's LDNH README.md)
+### Date: January 29, 2024
 
 Python tools for analyzing electrochemistry voltammograms. The script
 `vg2signal.py` processes a potentiostat voltammogram data file using a method
@@ -13,83 +13,129 @@ analyte peak).
 
 # Prerequisites for using this software
 
-- Python 3.9 (on Apple Silicon, it doesn't yet work on Python 3.11)
+- Python 3.9 (`scikit-learn` package does not work on any later version)
 - `git`
-- `bash` shell
+- Coding Application/IDE
+- A github account
 
-So far, this software has only been tested on MacOS 12.6.5 on Apple M1. It has 
-not been tested on Windows/x86_64, Linux/x86_64, etc.
+So far, this software has only been tested on Windows11/x86_64. It has 
+not been tested on MacOS 12.6.5 on Apple M1, Linux/x86_64, etc.
 
-# How to install and run `vg2signal.py`:
+# How to install and run `groupvg2.py` for `user-friendly` branch:
 
-These instructions assume that you know how to use the bash shell (and modify
-your PATH if necessary), and that you are in an interactive bash session
+1. Download Python 3.9 (can be 3.9.0-3.9.12)
+   1. make sure to select `Add Python 3.9 to PATH` when you install it
 
-1. Clone the software repo
+
+2. Download a coding application/IDE (i.e. VisualStudio, VSCode, PyCharm)
+
+
+3. Clone the software repo (2 ways)
+   1. sign into your github through the IDE
+   2. paste the repo address: `https://github.com/ramseylab/vgrampy.git`
+
+
+4. Change to the correct branch- for running for one experiment use `user-friendly`
+   1. for VisualStudio- on the right side click `Git Changes` and change the drop-down menu
+
+
+5. Open the command prompt and change your directory to the software repo `cd vgrampy`
+   1. if you open the command prompt within your IDE, it should already be in the right directory
+
+
+6. Install all of the required packages:
+```dockerignore
+pip install numpy
+```
+- depending on your computer, it may be `pip` or `pip3`
+- most packages will be installed when creating the virtual environment
+
+7. Run the program by typing in 
+```
+python groupvg2.py
+```
+- depending on your computer, it may be `python` or `python3` or `py`
+
+# Options for `groupvg2.py`:
+
+### There are default parameters applied to the code, but you can change them if needed
+
+- **Log-Transformation**: log-transform or not (default = log)
+- **Peak Feature**: peak curvature, height or area (default = peak curvature)
+- **Smoothing Parameter**: amount of smoothing the voltammogram (default = 0.006)
+- **Stiffness Parameter**: how strictly the spline passes through the data points (default = 0)
+- **Window Width**: voltage width to window out when making the spline (default = 0.15)
+
+# Plotting In `groupvg2.py`:
+
+#### You can choose whether or not to plot, and whether to separate those plots by concentration
+#### The plots saved will be the smoothed and detilted voltammograms, more options are in `plotseparate.py`
+
+# Output Files
+
+## There are 3 files created by running `groupvg2.py`
+
+The naming convention for each file is: `[filename]_[log or no log]_[smoothing parameter]_[stiffness parameter]_[window width]`
+
+For example `dataframe_log_curvature_0.006_0_0.15.xlsx`
+
+### 1. A dataframe excel file that has each replicates' data:
+
+| conc | replicate | V     | I       | logI     | smoothed | detilted |
+|------|-----------|-------|---------|----------|:---------|----------|
+| 0    | 1         | 0.504 | 0.08379 | -0.25515 | -0.24431 | 0        |
+| 0    | 1         | 0.508 | 0.8375  | -0.25584 | -0.23192 | 0        |
+| 0    | 1         | 0.512 | 0.8564  | -0.21048 | -0.21048 | 0        |
+| 0    | 1         | 0.516 | 0.8797  | -0.18492 | -0.18001 | 0        |
+| 0    | 1         | 0.520 | 0.9069  | -0.14098 | -0.14420 | 0        | 
+
+### 2. A signal excel file that has the signal, peak voltage, and voltage center for each replicate:
+
+In the file, the `vcenter` column contains the voltage value, for each voltammogram,
+of the inflection point identified by the "shoulder getter" function; and the `peak V`
+column contains the voltage value, for each voltammogram, at which the background-subtracted
+voltammogram has a critical point within the censoring window.
+
+| file                    | signal   | peak V | vcenter |
+|-------------------------|----------|--------|---------|
+| 2024_01_02_cbz00_01.txt | 23.9020  | 1.083  | 1.012   |
+| 2024_01_02_cbz15_01.txt | 324.8372 | 1.074  | 1.076   |
+| 2024_01_02_cbz15_02.txt | 236.3741 | 1.061  | 1.064   |
+
+### 3. A stats excel file that has the signal, peak voltage, and voltage center for each replicate:
+
+| conc      | average | std   | CV    | T-Statistic | avg peak | std peak |
+|-----------|---------|-------|-------|-------------|----------|----------|
+| 0.0&mu;M  | 28.9    | 20.11 | 0     | 0           | 1.02     | 0.04     |
+| 5.0&mu;M  | 84.11   | 14.19 | 0.169 | 6.34        | 1.06     | 0.01     |
+| 10.0&mu;M | 9.80    | 29.8  | 0.206 | 5.19        | 1.07     | 0        |
+| 15.0&mu;M | 227.97  | 42.43 | 0.186 | 4.54        | 1.07     | 0        |
+
+
+
+# Troubleshooting:
+
+### 1.  Problem: When I try to switch my branch to user-friendly I get the error: 
 
 ```
-git clone git@github.com:ramseylab/vgrampy.git
+Exception of type 'Microsoft.TeamFoundation.Git.Contracts.GitCheckoutConflictException' was thrown`"
 ```
+This means that the destination branch has more exclusions in .gitignore than the original branch.
 
-2. Change directory into the software repo
-
-```
-cd vgrampy
-```
-
-3. Install a Python virtualenv, assuming `PYTHON` is a placeholder for a command
-that runs a "vgrampy"-compatible python (for example, `/usr/bin/python3` on MacOS
-12.6.5):
-
-```
-PYTHON -m venv venv
-```
-
-so on MacOS 12.6.5, the above would be:
-
-```
-/usr/bin/python3 -m venv venv
-```
-
-4. Install the required packages
-
-```
-venv/bin/pip3 install -r requirements.txt
-```
-
-5. Run `vg2signal.py` on your voltammogram `VGRAM.txt`
+**Solution:** in the Git changes, 'ignore' the .suo (or .wsuo) file and then do a force checkout to get to your desired branch.
 
 
-```
-venv/bin/python3 vg2signal.py VGRAM.txt
-```
+### 2. Problem: When I am installing the packages, I get an error with `scikit-fda`
 
-where, of course, `VGRAM.txt` needs to be in the local
-working directory or you need to specify the path to it, like
+This means that you are not using Python 3.9
 
-```
-venv/bin/python3 vg2signal.py /path/to/VGRAM.txt
-```
+**Solution:** 
+- Uninstall the Python version you have on your computer (make sure it is no longer in PATH). 
+- Install Python 3.9 and change your interpreter to the correct version
 
-# Options for `vg2signal.py`:
 
-- `--plot`: a present/absent optional argument that displays a plot of the
-  detilted voltammogram
-- `--bw`: a floating point argument that specifies the bandwidth for kernel
-  density smoothing of the log-transformed voltammogram; default value is 0.02
-  (determined empirically on limited data using inspection; may not be optimal)
-- `--smooth`: a floating point argument that specifies the smoothing parameter
-for the smooth cubic spline fit for detilting; default value is 0.0000001
-(determined empirically on limited data using inspection; may not be optimal)
-- `--help`: display concise help text for the command-line options for `vg2signalpy`
-- `--recenter`: analyze the voltammogram twice; the second time, use a window
-that is centered on the empirically determined peak voltage from the first run
-(so-called "double-detilting")
-- `--vcenter`: specify the voltage where the analyte peak is expected (default
-value is `1.073649114`; this will likely need tuning depending on your specific
-experimental conditions, electrode treatment, saliva background, etc.)
-- `--vwidth`: specify the width of the window for data censoring for fitting the
-background voltammogram for detilting; defaults to `0.135`; this will likely
-need tuning depending on your specific experimental conditions, electrode
-treatment, saliva background, etc.)
+### 3. Problem: I cannot access the vgrampy github
 
+You need to be added by an admin in order to access the code (currently Noel)
+
+**Solution:** email the admin to get your github account added to the repo
