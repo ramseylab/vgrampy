@@ -1,7 +1,7 @@
 import os
 
 # Define the path to your site-packages directory
-site_packages_dir = 'E:\\programs\\Fu_Lab\\vgrampy\\fuvenv\\Lib\\site-packages'
+site_packages_dir = 'c:\\users\\aramz\\anaconda3\\lib\\site-packages'
 
 # List of packages from requirements.txt
 required_packages = [
