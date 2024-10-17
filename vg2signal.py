@@ -9,6 +9,8 @@ import csaps
 import numdifftools
 from sklearn import metrics
 
+import numpy as np
+
 """
 get_num_header_lines
 - used by read_raw_vg_as_df to get number of rows to skip
@@ -84,7 +86,8 @@ def make_shoulder_getter(vstart: float,
         if len(roots_ddd) == 1:
             v_peak = float(roots_ddd[0])
         elif len(roots_ddd) > 1:  # if multiple third derivatives
-            v_peak = list(v[v_in])[spl_mdl_dd_pred.argmin()]
+            idx       = spl_mdl_dd(np.array(roots_ddd)).argmin()
+            v_peak    = roots_ddd[idx]
         else:  # if no third derivative, get minimum of second derivative
             minsecond = min(spl_mdl_dd_pred)
             idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
