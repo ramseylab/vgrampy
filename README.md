@@ -29,9 +29,10 @@ cd Vgram_UI
 ```
 
 2. Install dependencies
-```
-pip install -r requirements.txt
-```
+- If you only have one version of python installed
+	```
+	pip install -r requirements.txt
+	```
 
 3. Edit `Vgram_UI.spec`
 	1. Change the File path in `locate_datas.py` to the path to your site packages

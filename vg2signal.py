@@ -8,8 +8,7 @@ import skfda
 import csaps
 import numdifftools
 from sklearn import metrics
-
-import numpy as np
+import chardet
 
 """
 get_num_header_lines
@@ -39,34 +38,82 @@ read_raw_vg_as_df
 
 def read_raw_vg_as_df(filename: str, start_voltage:str) -> pandas.DataFrame:
     with open(filename, "r") as input_file:
-        omit_e = get_num_header_lines(input_file, start_voltage)
+        if filename[-3:] == 'txt':
+            omit_e = get_num_header_lines(input_file, start_voltage)
+            c_factor = -1E+6
+
+        elif filename[-3:] == 'csv':
+            omit_e = 8  # Assuming the first 8 lines should be omitted
+            c_factor = 1
+            with open(filename, 'rb') as file:
+                raw_data = file.read(10000)  # Read a small portion of the file for detection
+            # Detect the encoding
+            result = chardet.detect(raw_data)
+            c_encoding = result['encoding']
+            if c_encoding != 'utf-8':
+                with open(filename, 'r', encoding=c_encoding) as file:
+                    content = file.read()
+                # Step 2: Write the content to a new file with UTF-8 encoding
+                with open(filename, 'w', encoding='utf-8') as file:
+                    file.write(content)
+                
+
+        sep_char = r',\s*'  # This handles both ',' and ', ' (comma followed by optional space)
+
         # a single chain of method calls can produce the desired
         # two-column dataframe, with negative current in the "I"
         # column and with the voltage in the "V" column
         return pandas.read_csv(
             input_file,
-            sep=", ",
+            sep=sep_char,
+            encoding='utf-8',
+            skipfooter=1,
             engine="python",
             skiprows=omit_e-1,
             usecols=[0, 1],
             names=["V", "I"]
         ).apply(
-            lambda r: [r[0], -1E+6 * r[1]],
+            lambda r: [r[0], c_factor * r[1]],
             axis=1,
             raw=True)
+
 
 """
 make_shoulder_getter
 - takes a rough voltage location of peak shoulder
 - retrun: voltage location of peak shoulder used as "vcenter"
 """
-
-
 def make_shoulder_getter(vstart: float,
                          vend: float) -> typing.Callable:
     def shoulder_getter_func(v: numpy.array,
                              lisd: numpy.array):
+        # Check for NaN or infinite values and report their locations
+        nan_v_indices = numpy.where(numpy.isnan(v))[0]
+        nan_lisd_indices = numpy.where(numpy.isnan(lisd))[0]
+        inf_v_indices = numpy.where(numpy.isinf(v))[0]
+        inf_lisd_indices = numpy.where(numpy.isinf(lisd))[0]
+
+        # Report if NaN or inf values are found
+        if nan_v_indices.size > 0:
+            print(f"NaN values found in 'v' at indices: {nan_v_indices}")
+        if nan_lisd_indices.size > 0:
+            print(f"NaN values found in 'lisd' at indices: {nan_lisd_indices}")
+        if inf_v_indices.size > 0:
+            print(f"Infinite values found in 'v' at indices: {inf_v_indices}")
+        if inf_lisd_indices.size > 0:
+            print(f"Infinite values found in 'lisd' at indices: {inf_lisd_indices}")
+
+        # Exit early if any NaN or inf values are found
+        if nan_v_indices.size > 0 or nan_lisd_indices.size > 0 or inf_v_indices.size > 0 or inf_lisd_indices.size > 0:
+            print("Please clean your input data before proceeding.")
+            return None, None
+
+        # Filter data within the range [vstart, vend]
         v_in = numpy.logical_and(v >= vstart, v <= vend)
+        if not numpy.any(v_in):
+            print("No valid data points in the specified range.")
+            return None, None
+        #v_in = numpy.logical_and(v >= vstart, v <= vend)
         spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
                                                           lisd[v_in],
                                                           s=0,
@@ -86,8 +133,10 @@ def make_shoulder_getter(vstart: float,
         if len(roots_ddd) == 1:
             v_peak = float(roots_ddd[0])
         elif len(roots_ddd) > 1:  # if multiple third derivatives
-            idx       = spl_mdl_dd(np.array(roots_ddd)).argmin()
-            v_peak    = roots_ddd[idx]
+            minsecond = min(spl_mdl_dd_pred)
+            idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
+            vin = list(v[v_in])
+            v_peak = vin[idx]
         else:  # if no third derivative, get minimum of second derivative
             minsecond = min(spl_mdl_dd_pred)
             idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
@@ -207,6 +256,7 @@ def v2signal(vg_filename: str,
     smoother = make_smoother(smoothing_bw)
 
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
+    #print(vg_df)
 
     shoulder_getter = make_shoulder_getter(pv_min, pv_max)  # 1-1.1V is approx peak location
     (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],

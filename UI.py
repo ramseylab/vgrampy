@@ -100,7 +100,7 @@ class App(ctk.CTk):
         self.ob2.set("Area")
         self.svi.insert("0", "0.852") #"0.902") 
         self.ac.insert("0", "cbz") #"oxc") 
-        self.pvr.insert("0", '1.0,1.1') #'1.55,1.65') 
+        self.pvr.insert("0", '1.0,1.1')# '1.47,1.57') #'1.55,1.65') 
 
 
     # Function to enable/disable "Sep Plot" checkbox based on "Plot" checkbox state
@@ -206,8 +206,10 @@ class App(ctk.CTk):
         # Notify the user of errors
         except ValueError as e:
             tkinter.messagebox.showerror("Value Error", f"Invalid Analyate Code: {e}")
+            print(e)
         except TypeError as e:
             tkinter.messagebox.showerror("Type Error", f"Invalid Start Voltage: {e}")
+            print(e)
     
     # Function to notify of script progress
     def show_popup(self):

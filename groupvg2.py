@@ -4,6 +4,8 @@ import os
 import sys
 import pandas as pd
 import scipy.stats as stats
+import matplotlib
+matplotlib.use('Agg')  # Use a non-GUI backend for saving plots
 import matplotlib.pyplot as plt
 
 """
@@ -52,7 +54,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
     signal_lst = []
     conc_dict = dict()  # [cbz concentration]: peak signals
     for filename in os.listdir():
-        if filename[-3:] == 'txt':
+        if filename[-3:] == 'txt' or filename[-3:] == 'csv':
             print("Analyzing:", filename)
             (peak_signal, peak_v, vg_df, vcentershoulder) = vg2signal.v2signal(filename,
                                                                                do_log,
