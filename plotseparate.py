@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')  # Use a non-GUI backend for saving plots
 import matplotlib.pyplot as plt
 import os
 import sys

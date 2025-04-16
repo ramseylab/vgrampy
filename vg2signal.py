@@ -9,6 +9,7 @@ import csaps
 import numdifftools
 from sklearn import metrics
 import chardet
+import UI
 
 """
 get_num_header_lines
@@ -39,12 +40,14 @@ read_raw_vg_as_df
 def read_raw_vg_as_df(filename: str, start_voltage:str) -> pandas.DataFrame:
     with open(filename, "r") as input_file:
         if filename[-3:] == 'txt':
+            skip_footer_rows = 0
             omit_e = get_num_header_lines(input_file, start_voltage)
             c_factor = -1E+6
 
         elif filename[-3:] == 'csv':
             omit_e = 8  # Assuming the first 8 lines should be omitted
             c_factor = 1
+            skip_footer_rows = 2
             with open(filename, 'rb') as file:
                 raw_data = file.read(10000)  # Read a small portion of the file for detection
             # Detect the encoding
@@ -63,11 +66,11 @@ def read_raw_vg_as_df(filename: str, start_voltage:str) -> pandas.DataFrame:
         # a single chain of method calls can produce the desired
         # two-column dataframe, with negative current in the "I"
         # column and with the voltage in the "V" column
-        return pandas.read_csv(
+        printing_df = pandas.read_csv(
             input_file,
             sep=sep_char,
             encoding='utf-8',
-            skipfooter=1,
+            skipfooter=skip_footer_rows,
             engine="python",
             skiprows=omit_e-1,
             usecols=[0, 1],
@@ -76,6 +79,21 @@ def read_raw_vg_as_df(filename: str, start_voltage:str) -> pandas.DataFrame:
             lambda r: [r[0], c_factor * r[1]],
             axis=1,
             raw=True)
+        #print(printing_df)
+        return printing_df
+        #return pandas.read_csv(
+        #    input_file,
+        #    sep=sep_char,
+        #    encoding='utf-8',
+        #    skipfooter=skip_footer_rows,
+        #    engine="python",
+        #    skiprows=omit_e-1,
+        #    usecols=[0, 1],
+        #    names=["V", "I"]
+        #).apply(
+        #    lambda r: [r[0], c_factor * r[1]],
+        #    axis=1,
+        #    raw=True)
 
 
 """
@@ -96,12 +114,16 @@ def make_shoulder_getter(vstart: float,
         # Report if NaN or inf values are found
         if nan_v_indices.size > 0:
             print(f"NaN values found in 'v' at indices: {nan_v_indices}")
+            UI.App.showError(error="NaN values found in 'v', Please clean your input data before proceeding.")
         if nan_lisd_indices.size > 0:
             print(f"NaN values found in 'lisd' at indices: {nan_lisd_indices}")
+            UI.App.showError(error="NaN values found in 'I', Please clean your input data before proceeding.")
         if inf_v_indices.size > 0:
             print(f"Infinite values found in 'v' at indices: {inf_v_indices}")
+            UI.App.showError(error="Infinite values found in 'v', Please clean your input data before proceeding.")
         if inf_lisd_indices.size > 0:
             print(f"Infinite values found in 'lisd' at indices: {inf_lisd_indices}")
+            UI.App.showError(error="Infinite values found in 'I', Please clean your input data before proceeding.")
 
         # Exit early if any NaN or inf values are found
         if nan_v_indices.size > 0 or nan_lisd_indices.size > 0 or inf_v_indices.size > 0 or inf_lisd_indices.size > 0:
@@ -133,8 +155,8 @@ def make_shoulder_getter(vstart: float,
         if len(roots_ddd) == 1:
             v_peak = float(roots_ddd[0])
         elif len(roots_ddd) > 1:  # if multiple third derivatives
-            idx       = spl_mdl_dd(np.array(roots_ddd)).argmin()
-            v_peak    = roots_ddd[idx]
+            idx = spl_mdl_dd(numpy.array(roots_ddd)).argmin()
+            v_peak = roots_ddd[idx]
         else:  # if no third derivative, get minimum of second derivative
             minsecond = min(spl_mdl_dd_pred)
             idx = (numpy.abs(spl_mdl_dd_pred - minsecond)).argmin()
@@ -254,7 +276,7 @@ def v2signal(vg_filename: str,
     smoother = make_smoother(smoothing_bw)
 
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
-    #print(vg_df)
+    print(vg_df)
 
     shoulder_getter = make_shoulder_getter(pv_min, pv_max)  # 1-1.1V is approx peak location
     (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],
