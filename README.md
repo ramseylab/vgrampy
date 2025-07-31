@@ -26,7 +26,7 @@
 
 1. Clone the repository
 ```
-git clone https://github.com/chickenmanxl/Vgram_UI.git
+git clone https://github.com/ramseylab/vgrampy.git
 cd Vgram_UI
 ```
 
