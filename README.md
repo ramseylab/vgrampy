@@ -14,7 +14,7 @@
 
 ```cmd
 cd <file path where you want the code to clone to>
-git clone https://github.com/ramseylab/vgrampy.git -b GUI
+git clone https://github.com/ramseylab/vgrampy.git -b "GUI"
 cd Vgram_UI
 ```
 
