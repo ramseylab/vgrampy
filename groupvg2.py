@@ -7,6 +7,7 @@ import scipy.stats as stats
 import matplotlib
 matplotlib.use('Agg')  # Use a non-GUI backend for saving plots
 import matplotlib.pyplot as plt
+import io
 
 """
 make_xlsx_str
@@ -42,19 +43,24 @@ run_vg2
 - return: 
     vg_df: dictionary of potential, raw, log, smoothed, & detilted data
     data_str: string of parameters
+- Added:
+    - type_id: set analytes other than CBZ
+    - v_start: voltage to start reading datafile, fix for other analytes not having the same data points
+    - pv_min, and pv_max to adjust peak finding for other analyte locations
+    - Allow csv data to be loaded for palmsense support
 """
 
 
-def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max):
+def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max): # Add support for other analytes
     # get filenames to save
     data_str = make_xlsx_str(do_log, peak_feature, smoothing_bw, stiffness, vwidth)
     vg_dict = dict()
     dfxl = pd.DataFrame()
     os.chdir(folderpath)  # change to desired folderpath
     signal_lst = []
-    conc_dict = dict()  # [cbz concentration]: peak signals
+    conc_dict = dict()  # [analyte concentration]: peak signals
     for filename in os.listdir():
-        if filename[-3:] == 'txt' or filename[-3:] == 'csv':
+        if filename[-3:] == 'txt' or filename[-3:] == 'csv': # Add support for .csv data
             print("Analyzing:", filename)
             (peak_signal, peak_v, vg_df, vcentershoulder) = vg2signal.v2signal(filename,
                                                                                do_log,
@@ -66,7 +72,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
                                                                                pv_min,
                                                                                pv_max)
 
-            idx1 = filename.rfind(type_id)
+            idx1 = filename.rfind(type_id) # added support for non cbz analytes
             idx2 = filename[idx1:].find("_")
             conc = filename[idx1 + 3:idx1 + idx2]
             replicate = filename[idx1 + idx2 + 1:filename.rfind(".")]
@@ -215,7 +221,7 @@ run_folderpath(folderpath: folder to run program)
 
 
 def run_folderpath(folderpath, toplot, sep, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max):
-    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
+    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max) # added support for other analytes
 
     if toplot:
         print("Saving Plots...")
@@ -223,8 +229,10 @@ def run_folderpath(folderpath, toplot, sep, do_log, peak_feat, smoothing_bw, sti
         print("Plots Saved")
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # added variables to maintain command line functionallity after other changes
     # folderpath to analyze
+    sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0),
+                                  write_through=True)  # StackOverflow:107705; see issue 4
     folder = input("Enter the path to analyze: ")
     if not os.path.exists(folder):
         sys.exit("Error: invalid file path")
