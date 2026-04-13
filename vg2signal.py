@@ -8,7 +8,6 @@ import skfda
 import csaps
 import numdifftools
 from sklearn import metrics
-
 import numpy as np
 
 """
@@ -119,6 +118,89 @@ def make_smoother(smoothing_bw: float) -> typing.Callable:
     return smoother_func
 
 
+import typing
+import numpy as np
+
+# this is the improved "signal getter" that takes a small window
+# of data points around the voltage where the data in `lisd` (i.e.,
+# the background-subtracted voltammogram) has an empirical maximum,
+# and fits a quadratic polynomial to it, to find a new v_center;
+# the new v_center, and the 2nd derivative (from the quadratic term
+# of the best-fit quadratic polynomial) are returned to the caller
+def make_signal_getter(
+    vstart: float,
+    vend: float,
+    fit_half_width: float = 0.015,
+    min_points: int = 7,
+) -> typing.Callable:
+    """
+    Estimate local peak curvature by fitting a quadratic locally around
+    the highest point in the interval [vstart, vend].
+
+    Returns:
+        signal, critical_point_v
+
+    where:
+        signal = - second derivative at the fitted local peak
+        critical_point_v = estimated peak location
+    """
+
+    def signal_getter_func(v: np.ndarray, lisd: np.ndarray):
+        v = np.asarray(v)
+        lisd = np.asarray(lisd)
+
+        v_in = (v >= vstart) & (v <= vend)
+        v_win = v[v_in]
+        y_win = lisd[v_in]
+
+        if len(v_win) < min_points:
+            return None, None
+
+        # Provisional peak = max observed value in the window
+        i0 = np.argmax(y_win)
+        v0 = float(v_win[i0])
+
+        # Local neighborhood around provisional peak
+        v_local_mask = np.abs(v_win - v0) <= fit_half_width
+        v_local = v_win[v_local_mask]
+        y_local = y_win[v_local_mask]
+
+        if len(v_local) < min_points:
+            # Fallback: use nearest min_points points
+            idx_sorted = np.argsort(np.abs(v_win - v0))
+            idx_use = np.sort(idx_sorted[:min_points])
+            v_local = v_win[idx_use]
+            y_local = y_win[idx_use]
+
+        # Center voltage for numerical stability
+        x = v_local - v0
+
+        # Quadratic fit: y = a + b*x + c*x^2
+        X = np.column_stack([np.ones_like(x), x, x**2])
+        beta, *_ = np.linalg.lstsq(X, y_local, rcond=None)
+        a, b, c = beta
+
+        # Estimated local extremum of fitted quadratic
+        if abs(c) < 1e-12:
+            return None, None
+
+        x_peak = -b / (2.0 * c)
+        v_peak = v0 + x_peak
+
+        # Reject if fitted extremum is too far from local window
+        if v_peak < v_local.min() or v_peak > v_local.max():
+            return None, None
+
+        # Must be concave down to be a peak
+        second_derivative = 2.0 * c
+        if second_derivative >= 0:
+            return None, None
+
+        signal = -second_derivative
+        return float(signal), float(v_peak)
+
+    return signal_getter_func
+
 """
 make_signal_getter
 - gets signal metric (curvature, area, height) around peak
@@ -126,10 +208,19 @@ make_signal_getter
 """
 
 
-def make_signal_getter(vstart: float,
+# this is the original version that uses a spline fit and analytically computes
+# the derivative of that spline fit, to find the critical points, and that
+# computes the second derivative of the _spline fit_ at the critical points
+# to empirically find the "peak voltage"; in hindsight, that approach is not
+# very numerically robust and can in some cases have a wildly inaccurate
+# curvature estimate (even one that is _positive_ curvature, in rare cases)
+# at the empirical peak center; that, in turn, can cause the peak-finding
+# to fail.
+def make_signal_getter_orig(vstart: float,
                        vend: float) -> typing.Callable:
     def signal_getter_func(v: numpy.array,
                            lisd: numpy.array):
+        print(f"vstart: {vstart} vend: {vend}")
         v_in = numpy.logical_and(v >= vstart, v <= vend)
         spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
                                                           lisd[v_in],
@@ -148,6 +239,7 @@ def make_signal_getter(vstart: float,
             ind_peak = numpy.argmin(dd_at_roots)
             if dd_at_roots[ind_peak] < 0:
                 critical_point_v = roots_d[ind_peak]
+                print(f"ind_peak: {ind_peak} roots_d[ind_peak]: {roots_d[ind_peak]}")
         signal = None
         if critical_point_v is not None:
             signal = -dd_at_roots[ind_peak]
