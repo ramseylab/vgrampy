@@ -9,6 +9,7 @@ matplotlib.use('Agg')  # Use a non-GUI backend for saving plots
 import matplotlib.pyplot as plt
 import io
 
+
 """
 make_xlsx_str
 - creates parameter strings to save 'signal' and 'stats' files
@@ -163,7 +164,7 @@ plot_curtype(
 
 
 def plot_curtype(foldername, vgdf, curtype, sep, param_str):
-    plt.clf()
+    fig, ax = plt.subplots(figsize=(4,3))
     colors = ['red', 'blue', 'green', 'black', 'pink']
     cnt = 0
     for conc in vgdf.keys():
@@ -174,30 +175,38 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str):
             x = vg["V"]
             y = vg[curtype]
             if i == (len(vglst) - 1):
-                plt.plot(x, y, color=colors[cnt], label=concstr)
+                ax.plot(x, y, color=colors[cnt], label=concstr)
             else:
-                plt.plot(x, y, color=colors[cnt])
+                ax.plot(x, y, color=colors[cnt])
         cnt += 1
-        plt.legend()
+        ax.legend()
         if sep:
-            plt.xlabel("Potential (V)")
-            plt.title(foldername + " " + curtype + " voltammogram")
+            ax.set_xlabel("Potential (V)")
+            ax.set_title(f"{foldername} {curtype} voltammogram")
             if curtype == "smoothed":
-                plt.ylabel("Current (i/\u03BCA)")
+                ax.set_ylabel("Current (i/\u03BCA)")
             else:
-                plt.ylabel("Normalized Current")
+                ax.set_ylabel("Normalized Current")
             figname = foldername + "_" + curtype + "_" + concstr + param_str + ".png"
+            plt.tight_layout()
             plt.savefig(figname)
-            plt.clf()
+            # plt.clf()
     if not sep:
-        plt.title(foldername + " " + curtype + " voltammogram")
-        plt.xlabel("Potential (V)")
+        ax.set_title(f"{foldername} {curtype} voltammogram")
+        ax.set_xlabel("Potential (V)")
         if curtype == "smoothed":
-            plt.ylabel("Current (i/\u03BCA)")
+            ax.set_ylabel("Current (i/\u03BCA)")
         else:
-            plt.ylabel("Normalized Current")
+            ax.set_ylabel("Normalized Current")
         figname = foldername + "_" + curtype + param_str + ".png"
+        plt.tight_layout()
         plt.savefig(figname)
+        # plt.clf()
+        # plt.show()
+    return fig, ax
+
+
+
 
 
 """
@@ -210,8 +219,10 @@ plot_vgrams(folderpath: folder to plot data from, vgdf: df of data to plot,
 
 def plot_vgrams(folderpath, vgdf, sep, param_str):  # alter for vg_d
     foldername = folderpath[folderpath.rfind("\\") + 1:]
-    plot_curtype(foldername, vgdf, "smoothed", sep, param_str)
-    plot_curtype(foldername, vgdf, "detilted", sep, param_str)
+    smth_fig, smth_ax = plot_curtype(foldername, vgdf, "smoothed", sep, param_str)
+    dtt_fig, dtt_ax = plot_curtype(foldername, vgdf, "detilted", sep, param_str)
+
+    return smth_fig, smth_ax, dtt_fig, dtt_ax
 
 
 """
@@ -220,13 +231,28 @@ run_folderpath(folderpath: folder to run program)
 """
 
 
-def run_folderpath(folderpath, toplot, sep, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max):
+def run_folderpath(path, user_input):
+    folderpath=path
+    toplot=user_input['toplot']
+    sep=user_input['sep']
+    do_log=user_input['do_log']
+    peak_feat=user_input['peak_feat']
+    smoothing_bw=user_input['smoothing_bw']
+    stiffness=user_input['stiffness']
+    vwidth=user_input['vwidth']
+    type_id=user_input['type_id']
+    v_start=user_input['v_start']
+    pv_min=user_input['pv_min']
+    pv_max=user_input['pv_max']
+
     vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max) # added support for other analytes
 
     if toplot:
         print("Saving Plots...")
-        plot_vgrams(folderpath, vg_d, sep, param_str)
+        smth_fig, smth_ax, dtt_fig, dtt_ax = plot_vgrams(folderpath, vg_d, sep, param_str)
         print("Plots Saved")
+
+        return smth_fig, smth_ax, dtt_fig, dtt_ax
 
 
 if __name__ == '__main__': # added variables to maintain command line functionallity after other changes

@@ -9,7 +9,7 @@ import csaps
 import numdifftools
 from sklearn import metrics
 import chardet # added chardet to allow for csv file encoding changes
-import UI # import UI code to allow error messages to display
+from tkinter import messagebox
 
 """
 get_num_header_lines
@@ -100,16 +100,16 @@ def make_shoulder_getter(vstart: float,
         # Report if NaN or inf values are found
         if nan_v_indices.size > 0:
             print(f"NaN values found in 'v' at indices: {nan_v_indices}")
-            UI.App.showError(error="NaN values found in 'v', Please clean your input data before proceeding.")
+            messagebox.showError(error="NaN values found in 'v', Please clean your input data before proceeding.")
         if nan_lisd_indices.size > 0:
             print(f"NaN values found in 'lisd' at indices: {nan_lisd_indices}")
-            UI.App.showError(error="NaN values found in 'I', Please clean your input data before proceeding.")
+            messagebox.showError(error="NaN values found in 'I', Please clean your input data before proceeding.")
         if inf_v_indices.size > 0:
             print(f"Infinite values found in 'v' at indices: {inf_v_indices}")
-            UI.App.showError(error="Infinite values found in 'v', Please clean your input data before proceeding.")
+            messagebox.showError(error="Infinite values found in 'v', Please clean your input data before proceeding.")
         if inf_lisd_indices.size > 0:
             print(f"Infinite values found in 'lisd' at indices: {inf_lisd_indices}")
-            UI.App.showError(error="Infinite values found in 'I', Please clean your input data before proceeding.")
+            messagebox.showError(error="Infinite values found in 'I', Please clean your input data before proceeding.")
 
         # Exit early if any NaN or inf values are found
         if nan_v_indices.size > 0 or nan_lisd_indices.size > 0 or inf_v_indices.size > 0 or inf_lisd_indices.size > 0:
