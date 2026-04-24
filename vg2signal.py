@@ -1,4 +1,4 @@
-import pandas
+import pandas as pd
 import scipy
 import typing
 import numpy as np # removed duplicate numpy import
@@ -19,8 +19,8 @@ get_num_header_lines
 
 def get_num_header_lines(file_obj: typing.TextIO, start_voltage:str) -> int: 
     line_ctr = 0
-    ret_ctr = None
-    omit_start = None
+    ret_ctr = None      # !!! not used
+    omit_start = None   # !!! not used
     omit_end = None
     for line in file_obj:
         line_ctr += 1
@@ -36,8 +36,48 @@ read_raw_vg_as_df
 - return: dataframe of current & potential
 """
 
+def gen_param_info(fn, do_log, peak_feat, smoothing_bw, vwidth, stiffness, v_start, pv_min, pv_max):
+    header_end = 0
+    with open(fn, 'r') as file:
+        all = file.readlines()
+        header_end = [i for i, v in enumerate(all) if 'Potential/V, Diff(i/A), For(i/A), Rev(i/A)' in v][0]
+        if header_end == 0:
+            return pd.DataFrame()
+        header_lines = all[:header_end]
 
-def read_raw_vg_as_df(filename: str, start_voltage:str) -> pandas.DataFrame: # change fixed start voltage to variable
+    expr_date = header_lines[0].strip('\n')
+    expr_mthd = header_lines[1].strip('\n')
+    instrument = [line for line in header_lines if 'Instrument' in line][0].split(':')[1].strip()
+    potnetio_param_vals = []
+    potentio_param_list = ['Init E (V)', 'Final E (V)', 'Incr E (V)', 'Amplitude (V)', 'Frequency (Hz)', 'Quiet Time (sec)', 'Sensitivity (A/V)']
+    for param in potentio_param_list:
+        potnetio_param_val = [line for line in header_lines if param in line][0].split('=')[1].strip()
+        potnetio_param_vals.append(potnetio_param_val)
+
+    potentio_param_info = potnetio_param_vals+[expr_date, expr_mthd, instrument]
+    potentio_param_idx = potentio_param_list+['Date & Time', 'Type', 'Instrument']
+    potentio_param_df = pd.DataFrame(potentio_param_info, index=potentio_param_idx, columns=[fn])
+    # print(potentio_param_df)
+
+    vgrampy_param_dict = {'log':do_log, 'peak_feat':peak_feat, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
+                          'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
+    vgrampy_param_df = pd.DataFrame.from_dict(vgrampy_param_dict, orient='index', columns=[fn])
+    # print(vgrampy_param_df)
+
+    param_df = pd.concat([vgrampy_param_df, potentio_param_df]).T
+    # print(param_df)
+
+    return param_df
+
+
+"""
+read_raw_vg_as_df
+- take the text file and gets the current & potential
+- return: dataframe of current & potential
+"""
+
+
+def read_raw_vg_as_df(filename: str, start_voltage:str) -> pd.DataFrame: # change fixed start voltage to variable
     with open(filename, "r") as input_file: # added support for palmsens data
         if filename[-3:] == 'txt':
             skip_footer_rows = 0
@@ -45,7 +85,7 @@ def read_raw_vg_as_df(filename: str, start_voltage:str) -> pandas.DataFrame: # c
             c_factor = -1E+6 # variable correction factor for diffrent potentiostats
 
         elif filename[-3:] == 'csv': # add .csv support
-            omit_e = 8  # Assuming the first 8 lines should be omitted, this should be variable in the future
+            omit_e = 8  # Assuming the first 8 lines should be omitted, this should be variable in the future !!!
             c_factor = 1 # variable correction factor for diffrent potentiostats
             skip_footer_rows = 2 # Do not read the last two rows of data to prevent errors
             with open(filename, 'rb') as file:
@@ -58,14 +98,14 @@ def read_raw_vg_as_df(filename: str, start_voltage:str) -> pandas.DataFrame: # c
                     content = file.read()
                 # Write the content to a new file with UTF-8 encoding
                 with open(filename, 'w', encoding='utf-8') as file:
-                    file.write(content)
+                    file.write(content)                                 # !!! probably for palmsense but overwriting
                 
         sep_char = r',\s*'  # This handles both ',' and ', ' (comma followed by optional space)
 
         # a single chain of method calls can produce the desired
         # two-column dataframe, with negative current in the "I"
         # column and with the voltage in the "V" column
-        printing_df = pandas.read_csv( # no longer immeaditly return results for easier troubleshooting
+        printing_df = pd.read_csv( # no longer immediately return results for easier troubleshooting
             input_file,
             sep=sep_char, # changed to a variable delimeter
             encoding='utf-8',
@@ -215,7 +255,7 @@ def make_signal_getter(
         v_win = v[v_in]
         y_win = lisd[v_in]
 
-        if len(v_win) < min_points:
+        if len(v_win) < min_points:     # why >= 7 points?
             return None, None
 
         # Provisional peak = max observed value in the window
@@ -350,6 +390,8 @@ def v2signal(vg_filename: str,
              pv_max: float): # added support for diffrent analyates
 
     vg_df = read_raw_vg_as_df(vg_filename, v_start)
+    param_df = gen_param_info(vg_filename, do_log, peak_feat, smoothing_bw, vwidth, stiffness, v_start, pv_min, pv_max)
+    # print(param_info)
 
     if do_log:
         cur_var_name = "logI"
@@ -366,25 +408,25 @@ def v2signal(vg_filename: str,
                                                      vg_df["smoothed"])
 
     vcenter = peak_v_shoulder
-    vstart = vcenter - 0.5*vwidth
+    vstart = vcenter - 0.5*vwidth       # !!! Is vwidth wide enough? 
     vend = vcenter + 0.5*vwidth
 
     detilter = make_detilter(vstart, vend, stiffness)
     vg_df["detilted"] = detilter(vg_df["V"].to_numpy(),
                                  vg_df["smoothed"].to_numpy())
 
+    
     signal_getter = make_signal_getter(vstart, vend)
     (peak_curve_return, peak_v_return) = signal_getter(vg_df["V"], vg_df["detilted"])
     ymaxidx = np.argmax(vg_df["detilted"])
 
-    peakarea = metrics.auc(vg_df["V"], vg_df["detilted"])*1000
-    peakheight = vg_df["detilted"][ymaxidx]
-
     if peak_feat == 1:  # if signal metric is peak curvature
         peak_signal_return = peak_curve_return
     elif peak_feat == 2:  # if signal metric is peak height
+        peakheight = vg_df["detilted"][ymaxidx]
         peak_signal_return = peakheight
     else:
+        peakarea = metrics.auc(vg_df["V"], vg_df["detilted"])*1000
         peak_signal_return = peakarea  # if signal metric is peak area
 
-    return peak_signal_return, peak_v_return, vg_df, vcenter
+    return peak_signal_return, peak_v_return, vg_df, vcenter, param_df

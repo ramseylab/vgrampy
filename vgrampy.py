@@ -133,7 +133,7 @@ class Init_Window(UI_InitWindow):
                     for file in files:
                         if file.startswith("dataframe") and file.endswith(".xlsx"):
                             file_path = os.path.join(root, file)
-                            df = pd.read_excel(file_path)
+                            df = pd.read_excel(file_path, sheet_name='dataframe')
                             # Pivot the dataframe to achieve the desired structure
                             df_pivot = df.pivot_table(index='V', columns=['conc', 'replicate'], values='I')
 
@@ -144,7 +144,7 @@ class Init_Window(UI_InitWindow):
                             df_pivot.reset_index(inplace=True)
 
                             # Save the transformed dataframe to a new Excel file in the same directory
-                            output_file_path = os.path.join(root, 'transformed_dataframe.xlsx')
+                            output_file_path = os.path.join(root, f'transformed_{file}')
                             with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
                                 df_pivot.to_excel(writer, index=False)
 
