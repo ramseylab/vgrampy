@@ -106,10 +106,10 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
                 dfxl = pd.concat([dfxl, pd.DataFrame(
                     [concxl, replicatexl, vg_df["V"], vg_df["I"], vg_df["smoothed"], vg_df["detilted"]]).transpose()])
 
-            if peak_signal is None:  # if find no peak  # !!! why not N/A?
-                peak_signal = 0
-            if peak_v is None:      # !!! why not N/A?
-                peak_v = 0
+            if peak_signal is None:
+                peak_signal = pd.NA
+            if peak_v is None:
+                peak_v = pd.NA
             # add text filename & peak signal to signal list
             signal_lst.append([filename, round(peak_signal, 4), round(peak_v, 3), round(vcentershoulder, 3)])
 
