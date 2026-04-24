@@ -151,7 +151,6 @@ class UI_InitWindow():
             self.cstm_plot.set(False)
         else:
             self.check_cstm.config(state=tk.ACTIVE)
-            self.cstm_plot.set(True)
 
 
 if __name__ == "__main__":

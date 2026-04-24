@@ -180,8 +180,15 @@ plot_curtype(
 """
 
 
-def plot_curtype(foldername, vgdf, curtype, sep, param_str):
-    fig, ax = plt.subplots(figsize=(4,3))
+def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_min, pv_max):
+    fig, ax = plt.subplots(figsize=(5,3))
+    ### add parameters    
+    fig.subplots_adjust(left=0.12, right=0.70, bottom=0.15)
+    fig.text(0.75, 0.45, f'V width: {vwidth}')
+    fig.text(0.75, 0.4, f'start V: {v_start}')
+    fig.text(0.75, 0.3, f'Peak voltage:')
+    fig.text(0.75, 0.25, f'{pv_min} - {pv_max}')
+
     colors = ['red', 'blue', 'green', 'black', 'pink']
     cnt = 0
     for conc in vgdf.keys():
@@ -205,7 +212,7 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str):
             else:
                 ax.set_ylabel("Normalized Current")
             figname = curtype + "_" + concstr + param_str + ".png"
-            plt.tight_layout()
+            # plt.tight_layout()
             plt.savefig(figname)
             # plt.clf()
     if not sep:
@@ -216,10 +223,11 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str):
         else:
             ax.set_ylabel("Normalized Current")
         figname = curtype + param_str + ".png"
-        plt.tight_layout()
+        # plt.tight_layout()
         plt.savefig(figname)
         # plt.clf()
         # plt.show()
+
     return fig, ax
 
 
@@ -234,10 +242,10 @@ plot_vgrams(folderpath: folder to plot data from, vgdf: df of data to plot,
 """
 
 
-def plot_vgrams(folderpath, vgdf, sep, param_str):  # alter for vg_d
+def plot_vgrams(folderpath, vgdf, sep, param_str, vwidth, v_start, pv_min, pv_max):  # alter for vg_d
     foldername = folderpath.split('/')[-1]
-    smth_fig, smth_ax = plot_curtype(foldername, vgdf, "smoothed", sep, param_str)
-    dtt_fig, dtt_ax = plot_curtype(foldername, vgdf, "detilted", sep, param_str)
+    smth_fig, smth_ax = plot_curtype(foldername, vgdf, "smoothed", sep, param_str, vwidth, v_start, pv_min, pv_max)
+    dtt_fig, dtt_ax = plot_curtype(foldername, vgdf, "detilted", sep, param_str, vwidth, v_start, pv_min, pv_max)
 
     return smth_fig, smth_ax, dtt_fig, dtt_ax
 
@@ -266,7 +274,7 @@ def run_folderpath(path, user_input):
 
     if toplot:
         print("Saving Plots...")
-        smth_fig, smth_ax, dtt_fig, dtt_ax = plot_vgrams(folderpath, vg_d, sep, param_str)
+        smth_fig, smth_ax, dtt_fig, dtt_ax = plot_vgrams(folderpath, vg_d, sep, param_str, vwidth, v_start, pv_min, pv_max)
         print("Plots Saved")
 
         return smth_fig, smth_ax, dtt_fig, dtt_ax
