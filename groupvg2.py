@@ -34,7 +34,7 @@ def make_xlsx_str(fn_ex, do_log, peak_feature):
 
     return data_str
 
-def save_df_excel(param_df, df, prfx, save_fn):
+def save_df_excel(param_df, df, prfx, save_fn, vgrampy_param_df):
     def adjust_column(writer, sheet_name, df):
         ws = writer.sheets[sheet_name]
         for col_cells in ws.columns:
@@ -42,12 +42,19 @@ def save_df_excel(param_df, df, prfx, save_fn):
             ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 2, 50)
 
     with pd.ExcelWriter(prfx+save_fn) as writer:
-        df.to_excel(writer, sheet_name=prfx, index=False)
-        adjust_column(writer, prfx, df)
         if prfx == 'signal':
-            param_df.to_excel(writer, sheet_name='parameters')
-            adjust_column(writer, 'parameters', param_df)
+            vgrampy_param_df.to_excel(writer, sheet_name=prfx, index=False)
 
+            param_df.to_excel(writer, sheet_name='potentiostat')
+            adjust_column(writer, 'potentiostat', param_df)
+
+            df.to_excel(writer, sheet_name=prfx, index=False, startrow=3)
+            adjust_column(writer, prfx, df)
+        
+        else:            
+            df.to_excel(writer, sheet_name=prfx, index=False)
+            adjust_column(writer, prfx, df)
+            
 
 
 
@@ -76,7 +83,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
     for filename in os.listdir():
         if filename[-3:] == 'txt' or filename[-3:] == 'csv': # Add support for .csv data
             print("Analyzing:", filename)
-            (peak_signal, peak_v, vg_df, vcentershoulder, param_df) = vg2signal.v2signal(filename,
+            (peak_signal, peak_v, vg_df, vcentershoulder, potentio_param_df) = vg2signal.v2signal(filename,
                                                                                do_log,
                                                                                peak_feature,
                                                                                smoothing_bw,
@@ -85,7 +92,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
                                                                                v_start,
                                                                                pv_min,
                                                                                pv_max)
-            all_param_df = pd.concat([all_param_df, param_df])
+            all_param_df = pd.concat([all_param_df, potentio_param_df])
             idx1 = filename.rfind(type_id) # added support for non cbz analytes
             idx2 = filename[idx1:].find("_")
             conc = filename[idx1 + 3:idx1 + idx2]
@@ -158,12 +165,20 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
     conc_lst_sorted = sorted(conc_list, key=lambda x: float(x[0][:-2]))
     conc_df = pd.DataFrame(conc_lst_sorted, columns=["conc", "average", "std", "CV", "T-Statistic", "avg peak", "std peak"])
 
+
+
+    vgrampy_param_dict = {'log':do_log, 'peak_feat':peak_feature, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
+                          'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
+    vgrampy_param_df = pd.DataFrame.from_dict(vgrampy_param_dict, orient='index', columns=[0]).T
+    # print(vgrampy_param_df)
+
     # get filenames to save
     fn_ex = [fn for fn in os.listdir() if ('.txt' in fn) | ('.csv' in fn)][0]
     data_str = make_xlsx_str(fn_ex, do_log, peak_feature)
-    save_df_excel(all_param_df, signal_df, "signal", data_str)
-    save_df_excel(None, conc_df, "stats", data_str)
-    save_df_excel(None, dfxl, "dataframe", data_str)
+
+    save_df_excel(all_param_df, signal_df, "signal", data_str, vgrampy_param_df)
+    save_df_excel(None, conc_df, "stats", data_str, None)
+    save_df_excel(None, dfxl, "dataframe", data_str, None)
 
     return vg_dict, data_str.split('.xlsx')[0]
 

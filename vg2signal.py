@@ -36,7 +36,7 @@ read_raw_vg_as_df
 - return: dataframe of current & potential
 """
 
-def gen_param_info(fn, do_log, peak_feat, smoothing_bw, vwidth, stiffness, v_start, pv_min, pv_max):
+def gen_param_info(fn):
     header_end = 0
     with open(fn, 'r') as file:
         all = file.readlines()
@@ -59,15 +59,7 @@ def gen_param_info(fn, do_log, peak_feat, smoothing_bw, vwidth, stiffness, v_sta
     potentio_param_df = pd.DataFrame(potentio_param_info, index=potentio_param_idx, columns=[fn])
     # print(potentio_param_df)
 
-    vgrampy_param_dict = {'log':do_log, 'peak_feat':peak_feat, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
-                          'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
-    vgrampy_param_df = pd.DataFrame.from_dict(vgrampy_param_dict, orient='index', columns=[fn])
-    # print(vgrampy_param_df)
-
-    param_df = pd.concat([vgrampy_param_df, potentio_param_df]).T
-    # print(param_df)
-
-    return param_df
+    return potentio_param_df.T
 
 
 """
@@ -390,8 +382,8 @@ def v2signal(vg_filename: str,
              pv_max: float): # added support for diffrent analyates
 
     vg_df = read_raw_vg_as_df(vg_filename, v_start)
-    param_df = gen_param_info(vg_filename, do_log, peak_feat, smoothing_bw, vwidth, stiffness, v_start, pv_min, pv_max)
-    # print(param_info)
+    potentio_param_df = gen_param_info(vg_filename)
+    # print(potentio_param_df)
 
     if do_log:
         cur_var_name = "logI"
@@ -429,4 +421,4 @@ def v2signal(vg_filename: str,
         peakarea = metrics.auc(vg_df["V"], vg_df["detilted"])*1000
         peak_signal_return = peakarea  # if signal metric is peak area
 
-    return peak_signal_return, peak_v_return, vg_df, vcenter, param_df
+    return peak_signal_return, peak_v_return, vg_df, vcenter, potentio_param_df
