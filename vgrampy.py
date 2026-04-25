@@ -148,6 +148,44 @@ class Init_Window(UI_InitWindow):
                             with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
                                 df_pivot.to_excel(writer, index=False)
 
+        if self.intgr_results.get():
+            all_signal = pd.DataFrame()
+            for path in file_paths:
+                for root, dirs, files in os.walk(path):
+                    for file in files:
+                        if file.startswith("signal") and file.endswith(".xlsx"):
+                            file_path = os.path.join(root, file)
+                            df = pd.read_excel(file_path, sheet_name='signal', skiprows=3, usecols=[0,1,2,3])
+                            print(df)
+
+                            all_signal = pd.concat([all_signal, df])
+            all_signal['condition'] = all_signal['file'].str.split('_').str.get(3)
+            all_signal['drug_conc'] = all_signal['file'].str.split('_').str.get(4).str.split('cbz').str.get(1).astype(int)
+            # print(all_signal)            
+
+            avg_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).mean().reset_index()
+            avg_df.rename(columns={'signal':'AVG'}, inplace=True)
+            std_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).std().reset_index()
+            std_df.rename(columns={'signal':'STD'}, inplace=True)
+
+            stat_df = avg_df.merge(std_df, on=['condition', 'drug_conc'])
+            
+            cnt_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).count().reset_index()
+            cnt_df.rename(columns={'signal':'count'}, inplace=True)
+
+            stat_df = stat_df.merge(cnt_df, on=['condition', 'drug_conc'])
+            stat_df.insert(2, 'label', stat_df['condition']+'_'+stat_df['drug_conc'].astype(str)+'uM')
+            # print(stat_df)
+
+            with pd.ExcelWriter(f'{self.dir_path}/integrated_signal.xlsx', engine='openpyxl') as writer:
+                stat_df.to_excel(writer, index=False)
+                all_signal.to_excel(writer, index=False, startrow=len(stat_df)+2)
+
+
+            
+        else:
+            messagebox.showinfo('Process', 'Done!')
+
         if self.cstm_plot.get():
             smth_cstm = Custom_window(smth_fig, smth_ax, user_input)
             smth_cstm.customUI.protocol("WM_DELETE_WINDOW", lambda: self.on_close(smth_cstm, dtt_fig, dtt_ax, user_input))

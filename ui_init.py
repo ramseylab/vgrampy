@@ -39,16 +39,20 @@ class UI_InitWindow():
         self.check_trnsfm.place(relx=0.51, rely=0.12)
 
         self.sprt_conc = tk.BooleanVar(self.init_window, value=False)
-        self.check_conc = tk.Checkbutton(self.init_window, text="Seperate Concentrations", font=fonts.medium, variable=self.sprt_conc, onvalue=True, offvalue=False, command=self.disable_custom)
+        self.check_conc = tk.Checkbutton(self.init_window, text="Seperate Concentrations", font=fonts.medium, variable=self.sprt_conc, onvalue=True, offvalue=False, command=self.disable_custom_able_intgr)
         self.check_conc.place(relx=0.02, rely=0.17)
 
         self.sprt_cond = tk.BooleanVar(self.init_window, value=False)
-        self.check_cond = tk.Checkbutton(self.init_window, text="Seperate Conditions", font=fonts.medium, variable=self.sprt_cond, onvalue=True, offvalue=False, command=self.disable_custom)
+        self.check_cond = tk.Checkbutton(self.init_window, text="Seperate Conditions", font=fonts.medium, variable=self.sprt_cond, onvalue=True, offvalue=False, command=self.disable_custom_able_intgr)
         self.check_cond.place(relx=0.51, rely=0.17)
 
         self.cstm_plot = tk.BooleanVar(self.init_window, value=False)
         self.check_cstm = tk.Checkbutton(self.init_window, text="Customize Plot", font=fonts.medium, variable=self.cstm_plot, onvalue=True, offvalue=False)
         self.check_cstm.place(relx=0.02, rely=0.22)
+        
+        self.intgr_results = tk.BooleanVar(self.init_window, value=False)
+        self.check_intgr = tk.Checkbutton(self.init_window, text="Integrate signals", font=fonts.medium, variable=self.intgr_results, onvalue=True, offvalue=False, state=tk.DISABLED)
+        self.check_intgr.place(relx=0.51, rely=0.22)
 
         ## analysis options
         # set background
@@ -145,12 +149,16 @@ class UI_InitWindow():
         else:
             pass
 
-    def disable_custom(self):
+    def disable_custom_able_intgr(self):
         if self.sprt_cond.get() | self.sprt_conc.get():
             self.check_cstm.config(state=tk.DISABLED)
             self.cstm_plot.set(False)
+            self.check_intgr.config(state=tk.ACTIVE)
+            self.intgr_results.set(True)
         else:
             self.check_cstm.config(state=tk.ACTIVE)
+            self.check_intgr.config(state=tk.DISABLED)
+            self.intgr_results.set(False)
 
 
 if __name__ == "__main__":
