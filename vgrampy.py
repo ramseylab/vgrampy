@@ -163,9 +163,9 @@ class Init_Window(UI_InitWindow):
             all_signal['drug_conc'] = all_signal['file'].str.split('_').str.get(4).str.split('cbz').str.get(1).astype(int)
             # print(all_signal)            
 
-            avg_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).mean().reset_index()
+            avg_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).mean().round(4).reset_index()
             avg_df.rename(columns={'signal':'AVG'}, inplace=True)
-            std_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).std().reset_index()
+            std_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).std().round(4).reset_index()
             std_df.rename(columns={'signal':'STD'}, inplace=True)
 
             stat_df = avg_df.merge(std_df, on=['condition', 'drug_conc'])
