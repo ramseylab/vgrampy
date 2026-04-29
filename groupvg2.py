@@ -114,9 +114,9 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
                     [concxl, replicatexl, vg_df["V"], vg_df["I"], vg_df["smoothed"], vg_df["detilted"]]).transpose()])
 
             if peak_signal is None:
-                peak_signal = pd.NA
+                peak_signal = np.nan
             if peak_v is None:
-                peak_v = pd.NA
+                peak_v = np.nan
             # add text filename & peak signal to signal list
             signal_lst.append([filename, round(peak_signal, 4), round(peak_v, 3), round(vcentershoulder, 3)])
 
@@ -139,6 +139,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
         dfxl.columns = ["conc", "replicate", "V", "I", "smoothed", "detilted"]
 
     signal_df = pd.DataFrame(signal_lst, columns=["file", "signal", "peak V", "vcenter"])
+
     conc_list = []
     concs_targetlst = sorted([c for idx, c in enumerate(list(conc_dict.keys()))], key=lambda v: float(v))
 

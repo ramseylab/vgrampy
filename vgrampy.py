@@ -156,7 +156,7 @@ class Init_Window(UI_InitWindow):
                         if file.startswith("signal") and file.endswith(".xlsx"):
                             file_path = os.path.join(root, file)
                             df = pd.read_excel(file_path, sheet_name='signal', skiprows=3, usecols=[0,1,2,3])
-                            print(df)
+                            # print(df)
 
                             all_signal = pd.concat([all_signal, df])
             all_signal['condition'] = all_signal['file'].str.split('_').str.get(3)
