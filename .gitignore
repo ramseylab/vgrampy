@@ -1,0 +1,8 @@
+__pycache__/
+dist/
+build/
+*/Vgram_UI.spec
+*/version.py
+*/locate_Datas.py
+.vs/
+.vscode/

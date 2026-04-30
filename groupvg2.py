@@ -4,8 +4,11 @@ import os
 import sys
 import pandas as pd
 import scipy.stats as stats
+import matplotlib
+matplotlib.use('Agg')  # Use a non-GUI backend for saving plots
 import matplotlib.pyplot as plt
 import io
+from openpyxl.utils import get_column_letter
 
 """
 make_xlsx_str
@@ -14,7 +17,7 @@ make_xlsx_str
 """
 
 
-def make_xlsx_str(do_log, peak_feature, smoothing_bw, stiffness, vwidth):
+def make_xlsx_str(fn_ex, do_log, peak_feature):
     if do_log:  # if run with log-transform
         log_str = "_log"
     else:  # if not use log-transform
@@ -26,12 +29,33 @@ def make_xlsx_str(do_log, peak_feature, smoothing_bw, stiffness, vwidth):
     else:
         peak_str = "_area"
 
-    smooth_str = "_" + str(smoothing_bw)
-    stiff_str = "_" + str(stiffness)
-    vwidth_str = "_" + str(vwidth)
-    # combine all params into one string
-    data_str = log_str + peak_str + smooth_str + stiff_str + vwidth_str + ".xlsx"
+    prfx = '_'.join(fn_ex.split('_')[0:4])+"_"+fn_ex.split('_')[4][:3]
+    data_str = f'{log_str}{peak_str}_{prfx}.xlsx'
+
     return data_str
+
+def save_df_excel(param_df, df, prfx, save_fn, vgrampy_param_df):
+    def adjust_column(writer, sheet_name, df):
+        ws = writer.sheets[sheet_name]
+        for col_cells in ws.columns:
+            max_len = max(len(str(cell.value)) if cell.value is not None else 0 for cell in col_cells)
+            ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 2, 50)
+
+    with pd.ExcelWriter(prfx+save_fn) as writer:
+        if prfx == 'signal':
+            vgrampy_param_df.to_excel(writer, sheet_name=prfx, index=False)
+
+            param_df.to_excel(writer, sheet_name='potentiostat')
+            adjust_column(writer, 'potentiostat', param_df)
+
+            df.to_excel(writer, sheet_name=prfx, index=False, startrow=3)
+            adjust_column(writer, prfx, df)
+        
+        else:            
+            df.to_excel(writer, sheet_name=prfx, index=False)
+            adjust_column(writer, prfx, df)
+            
+
 
 
 """
@@ -41,28 +65,35 @@ run_vg2
 - return: 
     vg_df: dictionary of potential, raw, log, smoothed, & detilted data
     data_str: string of parameters
+- Added:
+    - type_id: set analytes other than CBZ
+    - v_start: voltage to start reading datafile, fix for other analytes not having the same data points
+    - pv_min, and pv_max to adjust peak finding for other analyte locations
+    - Allow csv data to be loaded for palmsense support
 """
 
 
-def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth):
-    # get filenames to save
-    data_str = make_xlsx_str(do_log, peak_feature, smoothing_bw, stiffness, vwidth)
+def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max): # Add support for other analytes
     vg_dict = dict()
     dfxl = pd.DataFrame()
     os.chdir(folderpath)  # change to desired folderpath
     signal_lst = []
-    conc_dict = dict()  # [cbz concentration]: peak signals
+    conc_dict = dict()  # [analyte concentration]: peak signals
+    all_param_df = pd.DataFrame()
     for filename in os.listdir():
-        if filename[-3:] == 'txt':
+        if filename[-3:] == 'txt' or filename[-3:] == 'csv': # Add support for .csv data
             print("Analyzing:", filename)
-            (peak_signal, peak_v, vg_df, vcentershoulder) = vg2signal.v2signal(filename,
+            (peak_signal, peak_v, vg_df, vcentershoulder, potentio_param_df) = vg2signal.v2signal(filename,
                                                                                do_log,
                                                                                peak_feature,
                                                                                smoothing_bw,
                                                                                vwidth,
-                                                                               stiffness)
-
-            idx1 = filename.rfind("cbz")
+                                                                               stiffness,
+                                                                               v_start,
+                                                                               pv_min,
+                                                                               pv_max)
+            all_param_df = pd.concat([all_param_df, potentio_param_df])
+            idx1 = filename.rfind(type_id) # added support for non cbz analytes
             idx2 = filename[idx1:].find("_")
             conc = filename[idx1 + 3:idx1 + idx2]
             replicate = filename[idx1 + idx2 + 1:filename.rfind(".")]
@@ -82,12 +113,13 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth):
                 dfxl = pd.concat([dfxl, pd.DataFrame(
                     [concxl, replicatexl, vg_df["V"], vg_df["I"], vg_df["smoothed"], vg_df["detilted"]]).transpose()])
 
-            if peak_signal is None:  # if find no peak
-                peak_signal = 0
+            if peak_signal is None:
+                peak_signal = np.nan
             if peak_v is None:
-                peak_v = 0
+                peak_v = np.nan
             # add text filename & peak signal to signal list
             signal_lst.append([filename, round(peak_signal, 4), round(peak_v, 3), round(vcentershoulder, 3)])
+
             if conc in conc_dict.keys():  # for each concentration
                 conclst = conc_dict[conc]
                 conclst.append((peak_signal, peak_v))  # add peak signal to concentration dictionary
@@ -101,7 +133,13 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth):
                 conc_dict[conc] = [(peak_signal, peak_v)]
                 vg_dict[conc] = [vg_df]
 
-    signal_df = pd.DataFrame(signal_lst)
+    if do_log:        
+        dfxl.columns = ["conc", "replicate", "V", "I", "logI", "smoothed", "detilted"]
+    else:
+        dfxl.columns = ["conc", "replicate", "V", "I", "smoothed", "detilted"]
+
+    signal_df = pd.DataFrame(signal_lst, columns=["file", "signal", "peak V", "vcenter"])
+
     conc_list = []
     concs_targetlst = sorted([c for idx, c in enumerate(list(conc_dict.keys()))], key=lambda v: float(v))
 
@@ -126,21 +164,27 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth):
         conc_list.append([concstr, avgval, stdval, cvval, ttest, avgpeakval, stdpeakval])  # add stats for conc
 
     conc_lst_sorted = sorted(conc_list, key=lambda x: float(x[0][:-2]))
-    conc_df = pd.DataFrame(conc_lst_sorted)
-    # save stats list to excel
-    stats_str = "stats" + data_str
-    signal_str = "signal" + data_str
-    dataframe_str = "dataframe" + data_str
-    conc_df.to_excel(stats_str, index=False,
-                     header=["conc", "average", "std", "CV", "T-Statistic", "avg peak", "std peak"])
-    signal_df.to_excel(signal_str, index=False,
-                       header=["file", "signal", "peak V", "vcenter"])  # save signal list to excel
-    if do_log:
-        dfxl.to_excel(dataframe_str, index=False,
-                      header=["conc", "replicate", "V", "I", "logI", "smoothed", "detilted"])
-    else:
-        dfxl.to_excel(dataframe_str, index=False, header=["conc", "replicate", "V", "I", "smoothed", "detilted"])
-    return vg_dict, data_str
+    conc_df = pd.DataFrame(conc_lst_sorted, columns=["conc", "average", "std", "CV", "T-Statistic", "avg peak", "std peak"])
+
+
+
+    vgrampy_param_dict = {'log':do_log, 'peak_feat':peak_feature, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
+                          'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
+    vgrampy_param_df = pd.DataFrame.from_dict(vgrampy_param_dict, orient='index', columns=[0]).T
+    # print(vgrampy_param_df)
+
+    # get filenames to save
+    fn_ex = [fn for fn in os.listdir() if ('.txt' in fn) | ('.csv' in fn)][0]
+    data_str = make_xlsx_str(fn_ex, do_log, peak_feature)
+
+    save_df_excel(all_param_df, signal_df, "signal", data_str, vgrampy_param_df)
+    save_df_excel(None, conc_df, "stats", data_str, None)
+    save_df_excel(None, dfxl, "dataframe", data_str, None)
+
+    return vg_dict, data_str.split('.xlsx')[0]
+
+
+
 
 
 """
@@ -152,8 +196,15 @@ plot_curtype(
 """
 
 
-def plot_curtype(foldername, vgdf, curtype, sep, param_str):
-    plt.clf()
+def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_min, pv_max):
+    fig, ax = plt.subplots(figsize=(5,3))
+    ### add parameters    
+    fig.subplots_adjust(left=0.12, right=0.70, bottom=0.15)
+    fig.text(0.75, 0.45, f'V width: {vwidth}')
+    fig.text(0.75, 0.4, f'start V: {v_start}')
+    fig.text(0.75, 0.3, f'Peak voltage:')
+    fig.text(0.75, 0.25, f'{pv_min} - {pv_max}')
+
     colors = ['red', 'blue', 'green', 'black', 'pink']
     cnt = 0
     for conc in vgdf.keys():
@@ -164,30 +215,39 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str):
             x = vg["V"]
             y = vg[curtype]
             if i == (len(vglst) - 1):
-                plt.plot(x, y, color=colors[cnt], label=concstr)
+                ax.plot(x, y, color=colors[cnt], label=concstr)
             else:
-                plt.plot(x, y, color=colors[cnt])
+                ax.plot(x, y, color=colors[cnt])
         cnt += 1
-        plt.legend()
+        ax.legend()
         if sep:
-            plt.xlabel("Potential (V)")
-            plt.title(foldername + " " + curtype + " voltammogram")
+            ax.set_xlabel("Potential (V)")
+            ax.set_title(f"{foldername} {curtype} voltammogram")
             if curtype == "smoothed":
-                plt.ylabel("Current (i/\u03BCA)")
+                ax.set_ylabel("Current (i/\u03BCA)")
             else:
-                plt.ylabel("Normalized Current")
-            figname = foldername + "_" + curtype + "_" + concstr + param_str + ".png"
+                ax.set_ylabel("Normalized Current")
+            figname = curtype + "_" + concstr + param_str + ".png"
+            # plt.tight_layout()
             plt.savefig(figname)
-            plt.clf()
+            # plt.clf()
     if not sep:
-        plt.title(foldername + " " + curtype + " voltammogram")
-        plt.xlabel("Potential (V)")
+        ax.set_title(f"{foldername} {curtype} voltammogram")
+        ax.set_xlabel("Potential (V)")
         if curtype == "smoothed":
-            plt.ylabel("Current (i/\u03BCA)")
+            ax.set_ylabel("Current (i/\u03BCA)")
         else:
-            plt.ylabel("Normalized Current")
-        figname = foldername + "_" + curtype + param_str + ".png"
+            ax.set_ylabel("Normalized Current")
+        figname = curtype + param_str + ".png"
+        # plt.tight_layout()
         plt.savefig(figname)
+        # plt.clf()
+        # plt.show()
+
+    return fig, ax
+
+
+
 
 
 """
@@ -198,10 +258,12 @@ plot_vgrams(folderpath: folder to plot data from, vgdf: df of data to plot,
 """
 
 
-def plot_vgrams(folderpath, vgdf, sep, param_str):  # alter for vg_d
-    foldername = folderpath[folderpath.rfind("\\") + 1:]
-    plot_curtype(foldername, vgdf, "smoothed", sep, param_str)
-    plot_curtype(foldername, vgdf, "detilted", sep, param_str)
+def plot_vgrams(folderpath, vgdf, sep, param_str, vwidth, v_start, pv_min, pv_max):  # alter for vg_d
+    foldername = folderpath.split('/')[-1]
+    smth_fig, smth_ax = plot_curtype(foldername, vgdf, "smoothed", sep, param_str, vwidth, v_start, pv_min, pv_max)
+    dtt_fig, dtt_ax = plot_curtype(foldername, vgdf, "detilted", sep, param_str, vwidth, v_start, pv_min, pv_max)
+
+    return smth_fig, smth_ax, dtt_fig, dtt_ax
 
 
 """
@@ -210,17 +272,32 @@ run_folderpath(folderpath: folder to run program)
 """
 
 
-def run_folderpath(folderpath, toplot, sep, do_log, peak_feat, smoothing_bw, stiffness, vwidth):
-    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth)
+def run_folderpath(path, user_input):
+    folderpath=path
+    toplot=user_input['toplot']
+    sep=user_input['sep']
+    do_log=user_input['do_log']
+    peak_feat=user_input['peak_feat']
+    smoothing_bw=user_input['smoothing_bw']
+    stiffness=user_input['stiffness']
+    vwidth=user_input['vwidth']
+    type_id=user_input['type_id']
+    v_start=user_input['v_start']
+    pv_min=user_input['pv_min']
+    pv_max=user_input['pv_max']
+
+    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
 
     if toplot:
         print("Saving Plots...")
-        plot_vgrams(folderpath, vg_d, sep, param_str)
+        smth_fig, smth_ax, dtt_fig, dtt_ax = plot_vgrams(folderpath, vg_d, sep, param_str, vwidth, v_start, pv_min, pv_max)
         print("Plots Saved")
 
+        return smth_fig, smth_ax, dtt_fig, dtt_ax
 
-if __name__ == '__main__':
-    # folderpath to analyze]]
+
+if __name__ == '__main__': # added variables to maintain command line functionallity after other changes
+    # folderpath to analyze
     sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0),
                                   write_through=True)  # StackOverflow:107705; see issue 4
     folder = input("Enter the path to analyze: ")
@@ -228,7 +305,7 @@ if __name__ == '__main__':
         sys.exit("Error: invalid file path")
 
     custom = input("Would you like to specify the analysis parameters (Y/N)?( Default: peak area, smoothing = "
-                   "0.006, stiffness = 0, vwidth = 0.15) ")
+                   "0.006, stiffness = 0, vwidth = 0.15, peak range = 1,1.1) ")
 
     if custom == "Y":
         do_loginput = bool(input("Do you want to log-transform? (1: log, 0: no log): "))
@@ -246,13 +323,20 @@ if __name__ == '__main__':
             sys.exit("Error: invalid stiffness")
 
         vwidthinput = float(input("Enter the window width: "))
+        vrange_list = input("Enter the area around the peak as <min>,<max>: ").split(",")
+        pvmin = float(vrange_list[0])
+        pvmax = float(vrange_list[1])
     else:
         do_loginput = True  # log param
         peak_featinput = 3 # 1:curvature, 2:height, 3:area
         smoothing_bwinput = 0.006  # smoothing bandwidth param
         stiffnessinput = 0  # stiffness param
         vwidthinput = 0.15  # detilt window width
+        pv_min = 1
+        pv_max = 1.1
 
+    d_type_id = input("Enter the three letter code for your analyte: ")
+    voltage_start = input("Enter the starting \'Potential\\V\' from your text files: ")
 
     plot = input("Would you like to plot? (Y/N): ")
     sepplot = False
@@ -268,4 +352,4 @@ if __name__ == '__main__':
 
     # run vg2 for file
     print("Processing: " + folder)
-    run_folderpath(folder, plot, sepplot, do_loginput, peak_featinput, smoothing_bwinput, stiffnessinput, vwidthinput)
+    run_folderpath(folder, plot, sepplot, do_loginput, peak_featinput, smoothing_bwinput, stiffnessinput, vwidthinput, d_type_id, voltage_start, pv_min, pv_max)
