@@ -39,11 +39,11 @@ class UI_InitWindow():
         self.check_trnsfm.place(relx=0.51, rely=0.12)
 
         self.sprt_conc = tk.BooleanVar(self.init_window, value=False)
-        self.check_conc = tk.Checkbutton(self.init_window, text="Seperate Concentrations", font=fonts.medium, variable=self.sprt_conc, onvalue=True, offvalue=False, command=self.disable_custom_able_intgr)
+        self.check_conc = tk.Checkbutton(self.init_window, text="Separate Concentrations", font=fonts.medium, variable=self.sprt_conc, onvalue=True, offvalue=False, command=self.disable_custom_able_intgr)
         self.check_conc.place(relx=0.02, rely=0.17)
 
         self.sprt_cond = tk.BooleanVar(self.init_window, value=False)
-        self.check_cond = tk.Checkbutton(self.init_window, text="Seperate Conditions", font=fonts.medium, variable=self.sprt_cond, onvalue=True, offvalue=False, command=self.disable_custom_able_intgr)
+        self.check_cond = tk.Checkbutton(self.init_window, text="Separate Conditions", font=fonts.medium, variable=self.sprt_cond, onvalue=True, offvalue=False, command=self.disable_custom_able_intgr)
         self.check_cond.place(relx=0.51, rely=0.17)
 
         self.cstm_plot = tk.BooleanVar(self.init_window, value=False)
