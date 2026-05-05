@@ -215,7 +215,7 @@ class Custom_window(UI_custom):
         super().__init__()
 
         self.update_labels(ax)
-        self.add_param_info(fig, user_input)
+        # self.add_param_info(fig, user_input)
 
         self.canvas = FigureCanvasTkAgg(fig, master=self.plot_frame)
         self.canvas.draw()
