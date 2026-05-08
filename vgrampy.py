@@ -69,136 +69,138 @@ class Init_Window(UI_InitWindow):
 
     # Function to run analysis
     def analyze(self):
-        if self.sprt_cond.get():
-            # Separate files into folders based on sheet number
-            file_paths = os.listdir(self.dir_path)
-            new_file_paths = []
-            for path in file_paths:
-                path = path.strip()
-                if not os.path.isdir(os.path.join(self.dir_path, path)):
-                    continue
-                else:
-                    path = os.path.join(self.dir_path, path)
+        try:
+            if self.sprt_cond.get():
+                # Separate files into folders based on sheet number
+                file_paths = os.listdir(self.dir_path)
+                new_file_paths = []
+                for path in file_paths:
+                    path = path.strip()
+                    if not os.path.isdir(os.path.join(self.dir_path, path)):
+                        continue
+                    else:
+                        path = os.path.join(self.dir_path, path)
+                
+                    for file in os.listdir(path):
+                        if file.endswith(".txt" or ".csv") and "_" in file:
+                            parts = file.split("_")
+                            if len(parts) > 2:
+                                sheet_number = parts[3]
+                                new_folder = os.path.join(path, sheet_number)
+                                if not os.path.exists(new_folder):
+                                    os.makedirs(new_folder)
+                                shutil.move(os.path.join(path, file), os.path.join(new_folder, file))
+
+                    new_file_paths.extend([os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))])
+
+                file_paths = new_file_paths
+            else:
+                try:
+                    if len(self.dir_path) > 0:
+                        file_paths = [self.dir_path]
+                except:
+                    messagebox.showerror('error', 'Check your path!')
             
-                for file in os.listdir(path):
-                    if file.endswith(".txt" or ".csv") and "_" in file:
-                        parts = file.split("_")
-                        if len(parts) > 2:
-                            sheet_number = parts[3]
-                            new_folder = os.path.join(path, sheet_number)
-                            if not os.path.exists(new_folder):
-                                os.makedirs(new_folder)
-                            shutil.move(os.path.join(path, file), os.path.join(new_folder, file))
+            user_input = {
+                'file_paths' : file_paths,
+                'toplot' : self.plot_data.get(),
+                'sep' : self.sprt_conc.get(),
+                'do_log' : self.log_data.get(),
+                'peak_feat' : self.peak_ftr.get(),
+                'smoothing_bw' : self.smth_var.get(),
+                'stiffness' : self.stff_var.get(),
+                'vwidth' : self.vwdth_var.get(),
+                'type_id' : self.anlt_code.get(),
+                'v_start' : self.svltg_var.get(),
+                'pv_min' : self.vrange_start_var.get(),
+                'pv_max' : self.vrange_end_var.get()
+            }
+            input_flag = self.check_input(user_input)
+            if input_flag == False:
+                # raise
+                messagebox.showerror('error', 'Check your input!')
+                return
 
-                new_file_paths.extend([os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))])
-
-            file_paths = new_file_paths
-        else:
-            try:
-                if len(self.dir_path) > 0:
-                    file_paths = [self.dir_path]
-            except:
-                messagebox.showerror('error', 'Check your path!')
-        
-        user_input = {
-            'file_paths' : file_paths,
-            'toplot' : self.plot_data.get(),
-            'sep' : self.sprt_conc.get(),
-            'do_log' : self.log_data.get(),
-            'peak_feat' : self.peak_ftr.get(),
-            'smoothing_bw' : self.smth_var.get(),
-            'stiffness' : self.stff_var.get(),
-            'vwidth' : self.vwdth_var.get(),
-            'type_id' : self.anlt_code.get(),
-            'v_start' : self.svltg_var.get(),
-            'pv_min' : self.vrange_start_var.get(),
-            'pv_max' : self.vrange_end_var.get()
-        }
-        input_flag = self.check_input(user_input)
-        if input_flag == False:
-            # raise
-            messagebox.showerror('error', 'Check your input!')
-            return
-
-        # Run analysis for all conditions
-        for path in file_paths:
-            # folder_path=path.strip()
-            # print(folder_path)
-
-            smth_fig, smth_ax, dtt_fig, dtt_ax = vg.run_folderpath(path, user_input)
-        # Rotate dataframe for easier graphing
-        if self.trnsfm_data.get():
+            # Run analysis for all conditions
             for path in file_paths:
-                for root, dirs, files in os.walk(path):
-                    for file in files:
-                        if file.startswith("dataframe") and file.endswith(".xlsx"):
-                            file_path = os.path.join(root, file)
-                            df = pd.read_excel(file_path, sheet_name='dataframe')
-                            # Pivot the dataframe to achieve the desired structure
-                            df_pivot = df.pivot_table(index='V', columns=['conc', 'replicate'], values='I')
+                # folder_path=path.strip()
+                # print(folder_path)
 
-                            # Flatten the MultiIndex columns
-                            df_pivot.columns = ['_'.join(map(str, col)) for col in df_pivot.columns]
+                smth_fig, smth_ax, dtt_fig, dtt_ax = vg.run_folderpath(path, user_input)
+            # Rotate dataframe for easier graphing
+            if self.trnsfm_data.get():
+                for path in file_paths:
+                    for root, dirs, files in os.walk(path):
+                        for file in files:
+                            if file.startswith("dataframe") and file.endswith(".xlsx"):
+                                file_path = os.path.join(root, file)
+                                df = pd.read_excel(file_path, sheet_name='dataframe')
+                                # Pivot the dataframe to achieve the desired structure
+                                df_pivot = df.pivot_table(index='V', columns=['conc', 'replicate'], values='I')
 
-                            # Reset the index to make 'V' a column again
-                            df_pivot.reset_index(inplace=True)
+                                # Flatten the MultiIndex columns
+                                df_pivot.columns = ['_'.join(map(str, col)) for col in df_pivot.columns]
 
-                            # Save the transformed dataframe to a new Excel file in the same directory
-                            output_file_path = os.path.join(root, f'transformed_{file}')
-                            with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
-                                df_pivot.to_excel(writer, index=False)
+                                # Reset the index to make 'V' a column again
+                                df_pivot.reset_index(inplace=True)
 
-        if self.intgr_results.get():
-            all_signal = pd.DataFrame()
-            for path in file_paths:
-                for root, dirs, files in os.walk(path):
-                    for file in files:
-                        if file.startswith("signal") and file.endswith(".xlsx"):
-                            file_path = os.path.join(root, file)
-                            df = pd.read_excel(file_path, sheet_name='signal', skiprows=3, usecols=[0,1,2,3])
-                            # print(df)
+                                # Save the transformed dataframe to a new Excel file in the same directory
+                                output_file_path = os.path.join(root, f'transformed_{file}')
+                                with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
+                                    df_pivot.to_excel(writer, index=False)
 
-                            all_signal = pd.concat([all_signal, df])
-            all_signal['condition'] = all_signal['file'].str.split('_').str.get(3)
-            all_signal['drug_conc'] = all_signal['file'].str.split('_').str.get(4).str.split('cbz').str.get(1).astype(int)
-            # print(all_signal)            
+            if self.intgr_results.get():
+                all_signal = pd.DataFrame()
+                for path in file_paths:
+                    for root, dirs, files in os.walk(path):
+                        for file in files:
+                            if file.startswith("signal") and file.endswith(".xlsx"):
+                                file_path = os.path.join(root, file)
+                                df = pd.read_excel(file_path, sheet_name='signal', skiprows=3, usecols=[0,1,2,3])
+                                # print(df)
 
-            avg_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).mean().round(4).reset_index()
-            avg_df.rename(columns={'signal':'AVG'}, inplace=True)
-            std_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).std().round(4).reset_index()
-            std_df.rename(columns={'signal':'STD'}, inplace=True)
+                                all_signal = pd.concat([all_signal, df])
+                all_signal['condition'] = all_signal['file'].str.split('_').str.get(3)
+                all_signal['drug_conc'] = all_signal['file'].str.split('_').str.get(4).str.split('cbz').str.get(1)
+                if all_signal['drug_conc'].str.contains('p').any():
+                    all_signal['drug_conc'] = all_signal['drug_conc'].str.replace('p', '.')
+                
+                all_signal['drug_conc'] = all_signal['drug_conc'].astype(float)
 
-            stat_df = avg_df.merge(std_df, on=['condition', 'drug_conc'])
-            
-            cnt_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).count().reset_index()
-            cnt_df.rename(columns={'signal':'count'}, inplace=True)
+                avg_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).mean().round(4).reset_index()
+                avg_df.rename(columns={'signal':'AVG'}, inplace=True)
+                std_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).std().round(4).reset_index()
+                std_df.rename(columns={'signal':'STD'}, inplace=True)
 
-            stat_df = stat_df.merge(cnt_df, on=['condition', 'drug_conc'])
-            stat_df.insert(2, 'label', stat_df['condition']+'_'+stat_df['drug_conc'].astype(str)+'uM')
-            # print(stat_df)
+                stat_df = avg_df.merge(std_df, on=['condition', 'drug_conc'])
+                
+                cnt_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).count().reset_index()
+                cnt_df.rename(columns={'signal':'count'}, inplace=True)
 
-            with pd.ExcelWriter(f'{self.dir_path}/integrated_signal.xlsx', engine='openpyxl') as writer:
-                stat_df.to_excel(writer, index=False)
-                all_signal.to_excel(writer, index=False, startrow=len(stat_df)+2)
+                stat_df = stat_df.merge(cnt_df, on=['condition', 'drug_conc'])
+                stat_df.insert(2, 'label', stat_df['condition']+'_'+stat_df['drug_conc'].astype(str)+'uM')
+                # print(stat_df)
 
+                with pd.ExcelWriter(f'{self.dir_path}/integrated_signal.xlsx', engine='openpyxl') as writer:
+                    stat_df.to_excel(writer, index=False)
+                    all_signal.to_excel(writer, index=False, startrow=len(stat_df)+2)
+                
+            else:
+                messagebox.showinfo('Process', 'Done!')
 
-            
-        else:
-            messagebox.showinfo('Process', 'Done!')
+            if self.cstm_plot.get():
+                smth_cstm = Custom_window(smth_fig, smth_ax, user_input)
+                smth_cstm.customUI.protocol("WM_DELETE_WINDOW", lambda: self.on_close(smth_cstm, dtt_fig, dtt_ax, user_input))
+            else:
+                messagebox.showinfo('Process', 'Done!')
 
-        if self.cstm_plot.get():
-            smth_cstm = Custom_window(smth_fig, smth_ax, user_input)
-            smth_cstm.customUI.protocol("WM_DELETE_WINDOW", lambda: self.on_close(smth_cstm, dtt_fig, dtt_ax, user_input))
-        else:
-            messagebox.showinfo('Process', 'Done!')
-
-        # # Notify the user of errors
-        # except ValueError as e:
-        #     messagebox.showerror("Value Error", f"Invalid Analyate Code: {e}")
-        #     print(e)
-        # except TypeError as e:
-        #     messagebox.showerror("Type Error", f"Invalid Start Voltage: {e}")
-        #     print(e)
+        # Notify the user of errors
+        except ValueError as e:
+            messagebox.showerror("Value Error", f"Invalid Analyate Code: {e}")
+            print(e)
+        except TypeError as e:
+            messagebox.showerror("Type Error", f"Invalid Start Voltage: {e}")
+            print(e)
 
     def on_close(self, smth, fig, ax, user_input):
         smth.customUI.destroy()
