@@ -34,26 +34,25 @@ def make_xlsx_str(fn_ex, do_log, peak_feature):
 
     return data_str
 
-def save_df_excel(param_df, df, prfx, save_fn, vgrampy_param_df):
-    def adjust_column(writer, sheet_name, df):
-        ws = writer.sheets[sheet_name]
-        for col_cells in ws.columns:
-            max_len = max(len(str(cell.value)) if cell.value is not None else 0 for cell in col_cells)
-            ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 2, 50)
+def adjust_column(writer, sheet_name):
+    ws = writer.sheets[sheet_name]
+    for col_cells in ws.columns:
+        max_len = max(len(str(cell.value)) if cell.value is not None else 0 for cell in col_cells)
+        ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 2, 50)
 
+def save_df_excel(param_df, df, prfx, save_fn, vgrampy_param_df):
     with pd.ExcelWriter(prfx+save_fn) as writer:
         if prfx == 'signal':
             vgrampy_param_df.to_excel(writer, sheet_name=prfx, index=False)
 
             param_df.to_excel(writer, sheet_name='potentiostat')
-            adjust_column(writer, 'potentiostat', param_df)
+            adjust_column(writer, 'potentiostat')
 
             df.to_excel(writer, sheet_name=prfx, index=False, startrow=3)
-            adjust_column(writer, prfx, df)
-        
+            adjust_column(writer, prfx)        
         else:            
             df.to_excel(writer, sheet_name=prfx, index=False)
-            adjust_column(writer, prfx, df)
+            adjust_column(writer, prfx)
             
 
 
@@ -168,7 +167,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
 
 
 
-    vgrampy_param_dict = {'log':do_log, 'peak_feat':peak_feature, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
+    vgrampy_param_dict = {'Vgrampy version':'20260511', 'log':do_log, 'peak_feat':peak_feature, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
                           'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
     vgrampy_param_df = pd.DataFrame.from_dict(vgrampy_param_dict, orient='index', columns=[0]).T
     # print(vgrampy_param_df)

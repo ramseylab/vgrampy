@@ -151,14 +151,18 @@ class Init_Window(UI_InitWindow):
 
             if self.intgr_results.get():
                 all_signal = pd.DataFrame()
+                param_exist = False
                 for path in file_paths:
                     for root, dirs, files in os.walk(path):
                         for file in files:
                             if file.startswith("signal") and file.endswith(".xlsx"):
                                 file_path = os.path.join(root, file)
+                                if param_exist == False:
+                                    vgrampy_param_df = pd.read_excel(file_path, sheet_name='signal', nrows=2)
+                                    param_exist = True
+
                                 df = pd.read_excel(file_path, sheet_name='signal', skiprows=3, usecols=[0,1,2,3])
                                 # print(df)
-
                                 all_signal = pd.concat([all_signal, df])
                 all_signal['condition'] = all_signal['file'].str.split('_').str.get(3)
                 all_signal['drug_conc'] = all_signal['file'].str.split('_').str.get(4).str.split('cbz').str.get(1)
@@ -182,8 +186,10 @@ class Init_Window(UI_InitWindow):
                 # print(stat_df)
 
                 with pd.ExcelWriter(f'{self.dir_path}/integrated_signal.xlsx', engine='openpyxl') as writer:
-                    stat_df.to_excel(writer, index=False)
-                    all_signal.to_excel(writer, index=False, startrow=len(stat_df)+2)
+                    vgrampy_param_df.to_excel(writer, index=False, sheet_name='integrated')
+                    stat_df.to_excel(writer, index=False, sheet_name='integrated', startrow=3)
+                    all_signal.to_excel(writer, index=False, sheet_name='integrated', startrow=len(stat_df)+5)
+                    vg.adjust_column(writer, sheet_name='integrated')
                 
             else:
                 messagebox.showinfo('Process', 'Done!')
