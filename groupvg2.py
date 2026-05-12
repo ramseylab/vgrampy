@@ -167,7 +167,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
 
 
 
-    vgrampy_param_dict = {'Vgrampy version':'20260511', 'log':do_log, 'peak_feat':peak_feature, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
+    vgrampy_param_dict = {'Vgrampy version':'20260512', 'log':do_log, 'peak_feat':peak_feature, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
                           'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
     vgrampy_param_df = pd.DataFrame.from_dict(vgrampy_param_dict, orient='index', columns=[0]).T
     # print(vgrampy_param_df)
@@ -198,11 +198,13 @@ plot_curtype(
 def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_min, pv_max):
     fig, ax = plt.subplots(figsize=(5,3))
     ### add parameters    
-    fig.subplots_adjust(left=0.15, right=0.75, bottom=0.15)
-    fig.text(0.78, 0.45, f'V width: {vwidth}')
-    fig.text(0.78, 0.4, f'start V: {v_start}')
-    fig.text(0.78, 0.3, f'Peak voltage:')
-    fig.text(0.78, 0.25, f'{pv_min} - {pv_max}')
+    fig.subplots_adjust(left=0.18, right=0.78, bottom=0.15)
+    fig.text(0.80, 0.6, f'V width')
+    fig.text(0.80, 0.55, f': {vwidth}')
+    fig.text(0.80, 0.45, f'Start V')
+    fig.text(0.80, 0.4, f': {v_start}')
+    fig.text(0.80, 0.3, f'Peak voltage')
+    fig.text(0.80, 0.25, f': {pv_min} - {pv_max}')
 
     colors = ['red', 'blue', 'green', 'black', 'pink']
     cnt = 0
