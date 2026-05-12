@@ -198,14 +198,15 @@ plot_curtype(
 def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_min, pv_max):
     fig, ax = plt.subplots(figsize=(5,3))
     ### add parameters    
-    fig.subplots_adjust(left=0.12, right=0.70, bottom=0.15)
-    fig.text(0.75, 0.45, f'V width: {vwidth}')
-    fig.text(0.75, 0.4, f'start V: {v_start}')
-    fig.text(0.75, 0.3, f'Peak voltage:')
-    fig.text(0.75, 0.25, f'{pv_min} - {pv_max}')
+    fig.subplots_adjust(left=0.15, right=0.75, bottom=0.15)
+    fig.text(0.78, 0.45, f'V width: {vwidth}')
+    fig.text(0.78, 0.4, f'start V: {v_start}')
+    fig.text(0.78, 0.3, f'Peak voltage:')
+    fig.text(0.78, 0.25, f'{pv_min} - {pv_max}')
 
     colors = ['red', 'blue', 'green', 'black', 'pink']
     cnt = 0
+    cond = os.path.basename(foldername)
     for conc in vgdf.keys():
         concstr = str(float(conc)) + " \u03BCM"
         vglst = vgdf[conc]
@@ -218,10 +219,10 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_
             else:
                 ax.plot(x, y, color=colors[cnt])
         cnt += 1
+        ax.set_title(f"{cond} {concstr} {curtype} voltammogram")
         ax.legend()
         if sep:
             ax.set_xlabel("Potential (V)")
-            ax.set_title(f"{foldername} {curtype} voltammogram")
             if curtype == "smoothed":
                 ax.set_ylabel("Current (i/\u03BCA)")
             else:
@@ -231,7 +232,6 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_
             plt.savefig(figname)
             # plt.clf()
     if not sep:
-        ax.set_title(f"{foldername} {curtype} voltammogram")
         ax.set_xlabel("Potential (V)")
         if curtype == "smoothed":
             ax.set_ylabel("Current (i/\u03BCA)")
