@@ -1,8 +1,8 @@
 # vgrampy
 
-## Author: Caleb Nejely ( Adapted from Noel Lefevre (Adapted from Steven Ramsey's LDNH README.md)))
+## Author: Sumin Jeong ( Adapted from Caleb Nejely (from Noel Lefevre (from Steven Ramsey's LDNH README.md))))
 
-### Date: August 7, 2025
+### Date: May 13, 2026
 
 ## Installing `Vgram`
 
@@ -14,8 +14,8 @@
 
 ```cmd
 cd <file path where you want the code to clone to>
-git clone https://github.com/ramseylab/vgrampy.git -b "GUI"
-cd Vgram_UI
+git clone https://github.com/ramseylab/vgrampy.git vgrampy
+cd vgrampy
 ```
 
 2. Install dependencies
@@ -32,9 +32,9 @@ cd Vgram_UI
 	pythonX.Y -m pip install -r requirements,txt
 	```
 
-3. Open Vgram_UI folder in visual studio code
+3. Open vgrampy folder in visual studio code
 
-4. Open UI.py
+4. Open vgrampy.py
 
 5. Use the play button in the top right to run
 
@@ -45,21 +45,25 @@ cd Vgram_UI
 
 ### There are default parameters applied, but you can change them if needed
 
-- **Plot Data**: generate automatic plots of the data
+- **Plot Data**: generate automatic plots of the data 
 
-- **Seperate Concentrations**: seperate plots based on concentration in the file name
+- **Separate Concentrations**: separate plots based on concentration in the file name
 
 - **Transform Data**: rotates and cleans up the output dataframe for easier work in excel, add an additional output file
 
-- **Seperate Conditions**: seperates data into folder before analysis based on the fourth item in the file name (eg. condition in "YYYY_MM_DD_<Condition (optional)>_<Analyte Code><Concentration>_<Test Number>")
+- **Separate Conditions**: separate data into folder before analysis based on the fourth item in the file name (eg. condition in "YYYY_MM_DD_<Condition (optional)>_<Analyte Code><Concentration>_<Test Number>")
+
+- **Integrate signals**: generate one single signal file integrating all signal files (only possible when 'separate conditions' is activated)
+
+- **Customize Plot**: able to adjust title, ranges of axes, and font sizes in plots
 
 - **Do log input**: log-transform or not (default 'yes')
 
-- **Peak Feature**: peak curvature, height or area (default = peak curvature)
+- **Peak Feature**: peak curvature, height or area (default = peak area)
 
 - **Start Voltage**: voltage start point of data (default = 0.852 for carbamazepine, change to 0.952 for oxcarbazepine)
 
-- **Analyate Code**: code for drug of intrest (cbz for carbamazepine, oxc for oxcarbazepine)
+- **Analyate Code**: code for drug of interest 
 
 - **Smoothing**: amount of smoothing the voltammogram (default = 0.006)
 
@@ -67,7 +71,7 @@ cd Vgram_UI
 
 - **Vwidth**: voltage width to window out when making the spline (default = 0.15)
 
-- **Peak Voltage Range**: voltage range to look for the peak in (default = 1.0 to 1.1)
+- **Peak Voltage Range**: voltage range to look for the peak in (default = 1.0 to 1.1 for cbz, 1.24 to 1.4 for oxc and lmg)
 
 ## Plotting In `Vgram`:
 
@@ -79,8 +83,8 @@ cd Vgram_UI
 
 ### There are 3 files created by running the installed program by default
 
-The naming convention for each file is: `[filename]_[log or no log]_[smoothing parameter]_[stiffness parameter]_[window width]`
-For example `dataframe_log_curvature_0.006_0_0.15.xlsx`
+The naming convention for each file is: `[filename]_[log or no log]_[peak feature]_YYYY_MM_DD_[condition]_[analyte code]`
+For example `dataframe_log_area_2026_05_07_Filter_cbz.xlsx`
 
 #### 1. A dataframe excel file that has each replicates' data:
 
