@@ -232,6 +232,7 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_
             figname = curtype + "_" + concstr + param_str + ".png"
             # plt.tight_layout()
             plt.savefig(figname)
+            plt.close()
             # plt.clf()
     if not sep:
         ax.set_xlabel("Potential (V)")
@@ -242,6 +243,7 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_
         figname = curtype + param_str + ".png"
         # plt.tight_layout()
         plt.savefig(figname)
+        plt.close()
         # plt.clf()
         # plt.show()
 
@@ -311,8 +313,8 @@ if __name__ == '__main__': # added variables to maintain command line functional
     if custom == "Y":
         do_loginput = bool(input("Do you want to log-transform? (1: log, 0: no log): "))
 
-        peak_featinput = int(input("Enter the peak feature (curvature: 1, height: 2, area: 3): "))
-        if peak_featinput < 1 or peak_featinput > 3:
+        peak_featinput = int(input("Enter the peak feature (curvature: 1, height: 2, area: 3, positive-area: 4, absolute-area: 5): "))
+        if peak_featinput < 1 or peak_featinput > 6:
             sys.exit("Error: invalid peak feature")
 
         smoothing_bwinput = float(input("Enter the smoothing parameter (>0): "))
@@ -325,11 +327,11 @@ if __name__ == '__main__': # added variables to maintain command line functional
 
         vwidthinput = float(input("Enter the window width: "))
         vrange_list = input("Enter the area around the peak as <min>,<max>: ").split(",")
-        pvmin = float(vrange_list[0])
-        pvmax = float(vrange_list[1])
+        pv_min = float(vrange_list[0])
+        pv_max = float(vrange_list[1])
     else:
         do_loginput = True  # log param
-        peak_featinput = 3 # 1:curvature, 2:height, 3:area
+        peak_featinput = 3 # 1:curvature, 2:height, 3:area, 4:positive-area, 5:absolute-area
         smoothing_bwinput = 0.006  # smoothing bandwidth param
         stiffnessinput = 0  # stiffness param
         vwidthinput = 0.15  # detilt window width

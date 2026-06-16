@@ -417,8 +417,14 @@ def v2signal(vg_filename: str,
     elif peak_feat == 2:  # if signal metric is peak height
         peakheight = vg_df["detilted"][ymaxidx]
         peak_signal_return = peakheight
-    else:
+    elif peak_feat == 3:    # if signal metric is peak area
         peakarea = metrics.auc(vg_df["V"], vg_df["detilted"])*1000
+        peak_signal_return = peakarea  # if signal metric is peak area
+    elif peak_feat == 4:    # if signal metric is peak positive-area
+        peakarea = metrics.auc(vg_df["V"], np.clip(vg_df["detilted"], 0, None))*1000
+        peak_signal_return = peakarea  # if signal metric is peak area
+    elif peak_feat == 5:    # if signal metric is peak absolute-area
+        peakarea = metrics.auc(vg_df["V"], np.abs(vg_df["detilted"]))*1000
         peak_signal_return = peakarea  # if signal metric is peak area
 
     return peak_signal_return, peak_v_return, vg_df, vcenter, potentio_param_df

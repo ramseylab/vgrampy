@@ -115,6 +115,7 @@ class Init_Window(UI_InitWindow):
                 'pv_min' : self.vrange_start_var.get(),
                 'pv_max' : self.vrange_end_var.get()
             }
+
             input_flag = self.check_input(user_input)
             if input_flag == False:
                 # raise
@@ -164,6 +165,7 @@ class Init_Window(UI_InitWindow):
                                 df = pd.read_excel(file_path, sheet_name='signal', skiprows=3, usecols=[0,1,2,3])
                                 # print(df)
                                 all_signal = pd.concat([all_signal, df])
+                all_signal['date'] = all_signal['file'].str[:10]
                 all_signal['condition'] = all_signal['file'].str.split('_').str.get(3)
                 all_signal['drug_conc'] = all_signal['file'].str.split('_').str.get(4).str.split('cbz').str.get(1)
                 if all_signal['drug_conc'].str.contains('p').any():
@@ -171,21 +173,21 @@ class Init_Window(UI_InitWindow):
                 
                 all_signal['drug_conc'] = all_signal['drug_conc'].astype(float)
 
-                avg_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).mean().round(4).reset_index()
+                avg_df = all_signal[['date', 'condition', 'drug_conc', 'signal']].groupby(['date', 'condition', 'drug_conc']).mean().round(4).reset_index()
                 avg_df.rename(columns={'signal':'AVG'}, inplace=True)
-                std_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).std().round(4).reset_index()
+                std_df = all_signal[['date', 'condition', 'drug_conc', 'signal']].groupby(['date', 'condition', 'drug_conc']).std().round(4).reset_index()
                 std_df.rename(columns={'signal':'STD'}, inplace=True)
 
-                stat_df = avg_df.merge(std_df, on=['condition', 'drug_conc'])
+                stat_df = avg_df.merge(std_df, on=['date', 'condition', 'drug_conc'])
                 
-                cnt_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).count().reset_index()
+                cnt_df = all_signal[['date', 'condition', 'drug_conc', 'signal']].groupby(['date', 'condition', 'drug_conc']).count().reset_index()
                 cnt_df.rename(columns={'signal':'count'}, inplace=True)
 
-                stat_df = stat_df.merge(cnt_df, on=['condition', 'drug_conc'])
-                stat_df.insert(2, 'label', stat_df['condition']+'_'+stat_df['drug_conc'].astype(str)+'uM')
+                stat_df = stat_df.merge(cnt_df, on=['date', 'condition', 'drug_conc'])
+                stat_df.insert(0, 'label', stat_df['date']+'_'+stat_df['condition']+'_'+stat_df['drug_conc'].astype(str)+'uM')
                 # print(stat_df)
 
-                with pd.ExcelWriter(f'{self.dir_path}/integrated_signal.xlsx', engine='openpyxl') as writer:
+                with pd.ExcelWriter(os.path.join(self.dir_path, 'integrated_signal.xlsx'), engine='openpyxl') as writer:
                     vgrampy_param_df.to_excel(writer, index=False, sheet_name='integrated')
                     stat_df.to_excel(writer, index=False, sheet_name='integrated', startrow=3)
                     all_signal.to_excel(writer, index=False, sheet_name='integrated', startrow=len(stat_df)+5)
