@@ -71,29 +71,31 @@ class Init_Window(UI_InitWindow):
     def analyze(self):
         try:
             if self.sprt_cond.get():
-                # Separate files into folders based on sheet number
-                file_paths = os.listdir(self.dir_path)
-                new_file_paths = []
-                for path in file_paths:
-                    path = path.strip()
-                    if not os.path.isdir(os.path.join(self.dir_path, path)):
-                        continue
-                    else:
-                        path = os.path.join(self.dir_path, path)
-                
-                    for file in os.listdir(path):
-                        if file.endswith(".txt" or ".csv") and "_" in file:
-                            parts = file.split("_")
-                            if len(parts) > 2:
-                                sheet_number = parts[3]
-                                new_folder = os.path.join(path, sheet_number)
-                                if not os.path.exists(new_folder):
-                                    os.makedirs(new_folder)
-                                shutil.move(os.path.join(path, file), os.path.join(new_folder, file))
+                # Separate files into folders based on conditions
 
-                    new_file_paths.extend([os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))])
+                file_paths = []
+                for root, dirs, files in os.walk(self.dir_path):
+                    for file in files:
+                        if not file.endswith((".txt", ".csv")) or "_" not in file:
+                            continue
 
-                file_paths = new_file_paths
+                        parts = file.split("_")
+                        if len(parts) <= 3:
+                            continue
+
+                        cond = parts[3]
+                        if cond == root:
+                            continue
+                        new_folder = os.path.join(root, cond)
+
+                        if new_folder == os.path.dirname(os.path.join(root, file)):
+                            continue
+                        
+                        if not os.path.exists(new_folder):
+                            os.makedirs(new_folder)
+                            file_paths.append(new_folder)
+                        shutil.move(os.path.join(root, file), os.path.join(new_folder, file))
+
             else:
                 try:
                     if len(self.dir_path) > 0:
@@ -115,7 +117,9 @@ class Init_Window(UI_InitWindow):
                 'pv_min' : self.vrange_start_var.get(),
                 'pv_max' : self.vrange_end_var.get()
             }
-
+            ####################################################
+            user_input['peak_feat'] = 4
+            ####################################################
             input_flag = self.check_input(user_input)
             if input_flag == False:
                 # raise
@@ -168,6 +172,7 @@ class Init_Window(UI_InitWindow):
                 all_signal['date'] = all_signal['file'].str[:10]
                 all_signal['condition'] = all_signal['file'].str.split('_').str.get(3)
                 all_signal['drug_conc'] = all_signal['file'].str.split('_').str.get(4).str.split('cbz').str.get(1)
+
                 if all_signal['drug_conc'].str.contains('p').any():
                     all_signal['drug_conc'] = all_signal['drug_conc'].str.replace('p', '.')
                 
