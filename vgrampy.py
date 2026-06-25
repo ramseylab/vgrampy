@@ -117,9 +117,7 @@ class Init_Window(UI_InitWindow):
                 'pv_min' : self.vrange_start_var.get(),
                 'pv_max' : self.vrange_end_var.get()
             }
-            ####################################################
-            user_input['peak_feat'] = 4
-            ####################################################
+            
             input_flag = self.check_input(user_input)
             if input_flag == False:
                 # raise
@@ -218,11 +216,6 @@ class Init_Window(UI_InitWindow):
     def on_close(self, smth, fig, ax, user_input):
         smth.customUI.destroy()
         dtt_cstm = Custom_window(fig, ax, user_input)
-
-
-
-
-
 
 
 class Custom_window(UI_custom):
