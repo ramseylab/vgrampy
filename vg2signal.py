@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import scipy
 import typing
 import numpy as np # removed duplicate numpy import
@@ -191,18 +192,58 @@ make_smoother
 """
 
 
-def make_smoother(smoothing_bw: float) -> typing.Callable:
-    kernel_estimator = skfda_hm.NadarayaWatsonHatMatrix(bandwidth=smoothing_bw)
-    kernel_smoother = skfda_smoothing.KernelSmoother(kernel_estimator)
+def make_smoother(smoothing_type: str, smoothing_bw: float) -> typing.Callable:
+    if smoothing_type == 'None':
+        def smoother_func(x: np.array,
+                        y: np.array) -> np.array:
+            return y.copy()
 
-    def smoother_func(x: np.array,
-                      y: np.array) -> np.array:
-        fd = skfda.FDataGrid(data_matrix=y,
-                             grid_points=x)
-        res = kernel_smoother.fit_transform(fd).data_matrix.flatten()
-        return res
+        return smoother_func
+    
+    elif smoothing_type == 'NW':    # Nadaraya-Watson with Gaussian kernel
+        kernel_estimator = skfda_hm.NadarayaWatsonHatMatrix(bandwidth=smoothing_bw)
+        kernel_smoother = skfda_smoothing.KernelSmoother(kernel_estimator)
 
-    return smoother_func
+        def smoother_func(x: np.array,
+                        y: np.array) -> np.array:
+            fd = skfda.FDataGrid(data_matrix=y,
+                                grid_points=x)
+            res = kernel_smoother.fit_transform(fd).data_matrix.flatten()
+            return res
+
+        return smoother_func
+    
+    elif smoothing_type == 'SG':    # Savitzky-Golay
+        window_length = 3
+        poly_order = 4
+
+        if window_length % 2 == 0:
+            window_length += 1
+        if poly_order >= window_length:
+            poly_order = window_length - 1
+
+        def smoother_func(x: np.array,
+                        y: np.array) -> np.array:
+            res = scipy.signal.savgol_filter(y,
+                                       window_length=window_length,
+                                       polyorder=poly_order)
+            return res
+
+        return smoother_func
+
+    elif smoothing_type == 'polynomial':
+        poly_order = 4
+
+        def smoother_func(x: np.array,
+                        y: np.array) -> np.array:
+            x_min, x_max = x.min(), x.max()
+            x_norm = 2 * (x - x_min) / (x_max - x_min) - 1
+
+            coeffs = np.polynomial.polynomial.polyfit(x_norm, y, poly_order)
+            res = np.polynomial.polynomial.polyval(x_norm, coeffs)
+            return res
+
+        return smoother_func
 
 
 """
@@ -374,6 +415,7 @@ vg2signal
 def v2signal(vg_filename: str,
              do_log: bool,
              peak_feat: int,
+             smoothing_type: str,
              smoothing_bw: float,
              vwidth: float,
              stiffness: float,
@@ -391,7 +433,7 @@ def v2signal(vg_filename: str,
     else:
         cur_var_name = "I"
 
-    smoother = make_smoother(smoothing_bw)
+    smoother = make_smoother(smoothing_type, smoothing_bw)
 
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
 

@@ -72,7 +72,7 @@ run_vg2
 """
 
 
-def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max): # Add support for other analytes
+def run_vg2(folderpath, do_log, peak_feature, smoothing_type, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max): # Add support for other analytes
     vg_dict = dict()
     dfxl = pd.DataFrame()
     os.chdir(folderpath)  # change to desired folderpath
@@ -85,6 +85,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
             (peak_signal, peak_v, vg_df, vcentershoulder, potentio_param_df) = vg2signal.v2signal(filename,
                                                                                do_log,
                                                                                peak_feature,
+                                                                               smoothing_type,
                                                                                smoothing_bw,
                                                                                vwidth,
                                                                                stiffness,
@@ -230,9 +231,9 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_
             else:
                 ax.set_ylabel("Normalized Current")
             figname = curtype + "_" + concstr + param_str + ".png"
-            # plt.tight_layout()
+            plt.tight_layout()
             plt.savefig(figname)
-            # plt.clf()
+            plt.clf()
     if not sep:
         ax.set_xlabel("Potential (V)")
         if curtype == "smoothed":
@@ -240,9 +241,9 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_
         else:
             ax.set_ylabel("Normalized Current")
         figname = curtype + param_str + ".png"
-        # plt.tight_layout()
+        plt.tight_layout()
         plt.savefig(figname)
-        # plt.clf()
+        plt.clf()
         # plt.show()
 
     return fig, ax
@@ -279,6 +280,7 @@ def run_folderpath(path, user_input):
     sep=user_input['sep']
     do_log=user_input['do_log']
     peak_feat=user_input['peak_feat']
+    smoothing_type=user_input['smoothing_type']
     smoothing_bw=user_input['smoothing_bw']
     stiffness=user_input['stiffness']
     vwidth=user_input['vwidth']
@@ -287,7 +289,7 @@ def run_folderpath(path, user_input):
     pv_min=user_input['pv_min']
     pv_max=user_input['pv_max']
 
-    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
+    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_type, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
 
     if toplot:
         print("Saving Plots...")
