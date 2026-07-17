@@ -72,7 +72,7 @@ run_vg2
 """
 
 
-def run_vg2(folderpath, do_log, peak_feature, smoothing_type, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max): # Add support for other analytes
+def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max): # Add support for other analytes
     vg_dict = dict()
     dfxl = pd.DataFrame()
     os.chdir(folderpath)  # change to desired folderpath
@@ -85,7 +85,6 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_type, smoothing_bw, stif
             (peak_signal, peak_v, vg_df, vcentershoulder, potentio_param_df) = vg2signal.v2signal(filename,
                                                                                do_log,
                                                                                peak_feature,
-                                                                               smoothing_type,
                                                                                smoothing_bw,
                                                                                vwidth,
                                                                                stiffness,
@@ -231,9 +230,10 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_
             else:
                 ax.set_ylabel("Normalized Current")
             figname = curtype + "_" + concstr + param_str + ".png"
-            plt.tight_layout()
+            # plt.tight_layout()
             plt.savefig(figname)
-            plt.clf()
+            plt.close()
+            # plt.clf()
     if not sep:
         ax.set_xlabel("Potential (V)")
         if curtype == "smoothed":
@@ -241,9 +241,10 @@ def plot_curtype(foldername, vgdf, curtype, sep, param_str, vwidth, v_start, pv_
         else:
             ax.set_ylabel("Normalized Current")
         figname = curtype + param_str + ".png"
-        plt.tight_layout()
+        # plt.tight_layout()
         plt.savefig(figname)
-        plt.clf()
+        plt.close()
+        # plt.clf()
         # plt.show()
 
     return fig, ax
@@ -280,7 +281,6 @@ def run_folderpath(path, user_input):
     sep=user_input['sep']
     do_log=user_input['do_log']
     peak_feat=user_input['peak_feat']
-    smoothing_type=user_input['smoothing_type']
     smoothing_bw=user_input['smoothing_bw']
     stiffness=user_input['stiffness']
     vwidth=user_input['vwidth']
@@ -289,7 +289,7 @@ def run_folderpath(path, user_input):
     pv_min=user_input['pv_min']
     pv_max=user_input['pv_max']
 
-    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_type, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
+    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
 
     if toplot:
         print("Saving Plots...")
@@ -313,8 +313,8 @@ if __name__ == '__main__': # added variables to maintain command line functional
     if custom == "Y":
         do_loginput = bool(input("Do you want to log-transform? (1: log, 0: no log): "))
 
-        peak_featinput = int(input("Enter the peak feature (curvature: 1, height: 2, area: 3): "))
-        if peak_featinput < 1 or peak_featinput > 3:
+        peak_featinput = int(input("Enter the peak feature (curvature: 1, height: 2, area: 3, positive-area: 4, absolute-area: 5): "))
+        if peak_featinput < 1 or peak_featinput > 6:
             sys.exit("Error: invalid peak feature")
 
         smoothing_bwinput = float(input("Enter the smoothing parameter (>0): "))
@@ -327,11 +327,11 @@ if __name__ == '__main__': # added variables to maintain command line functional
 
         vwidthinput = float(input("Enter the window width: "))
         vrange_list = input("Enter the area around the peak as <min>,<max>: ").split(",")
-        pvmin = float(vrange_list[0])
-        pvmax = float(vrange_list[1])
+        pv_min = float(vrange_list[0])
+        pv_max = float(vrange_list[1])
     else:
         do_loginput = True  # log param
-        peak_featinput = 3 # 1:curvature, 2:height, 3:area
+        peak_featinput = 3 # 1:curvature, 2:height, 3:area, 4:positive-area, 5:absolute-area
         smoothing_bwinput = 0.006  # smoothing bandwidth param
         stiffnessinput = 0  # stiffness param
         vwidthinput = 0.15  # detilt window width

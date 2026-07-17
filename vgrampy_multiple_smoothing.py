@@ -140,14 +140,15 @@ def analyze(dir_path, smoothing_type, pv_max):
 
 
 if __name__ == '__main__':
-    org_dir = 'C:/Users/jeongsu/Downloads/raw_ML_dataset'
+    org_dir = '/Users/rmsl/Downloads/raw_ML_dataset'
 
     pv_max_str_dict = {1.10:'110', 1.15:'115'}
 
     pv_max = 1.10
 
-    for smoothing_type in ['None', 'NW', 'SG', 'polynomial']:
-        dir_path = f'C:/Users/jeongsu/Downloads/MLdataset_{smoothing_type}'
+    # for smoothing_type in ['None', 'NW', 'SG', 'polynomial']:
+    for smoothing_type in ['SG']:
+        dir_path = f'/Users/rmsl/Downloads/MLdataset_{smoothing_type}'
         if not os.path.exists(dir_path):
             shutil.copytree(org_dir, dir_path)
 

@@ -214,13 +214,8 @@ def make_smoother(smoothing_type: str, smoothing_bw: float) -> typing.Callable:
         return smoother_func
     
     elif smoothing_type == 'SG':    # Savitzky-Golay
-        window_length = 3
+        window_length = 9
         poly_order = 4
-
-        if window_length % 2 == 0:
-            window_length += 1
-        if poly_order >= window_length:
-            poly_order = window_length - 1
 
         def smoother_func(x: np.array,
                         y: np.array) -> np.array:
