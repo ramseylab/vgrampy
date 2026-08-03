@@ -176,7 +176,8 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
     fn_ex = [fn for fn in os.listdir() if ('.txt' in fn) | ('.csv' in fn)][0]
     data_str = make_xlsx_str(fn_ex, do_log, peak_feature)
 
-    save_df_excel(all_param_df, signal_df, "signal", data_str, vgrampy_param_df)
+    if len(all_param_df) > 0:
+        save_df_excel(all_param_df, signal_df, "signal", data_str, vgrampy_param_df)
     save_df_excel(None, conc_df, "stats", data_str, None)
     save_df_excel(None, dfxl, "dataframe", data_str, None)
 
