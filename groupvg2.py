@@ -167,7 +167,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
 
 
 
-    vgrampy_param_dict = {'Vgrampy version':'20260512', 'log':do_log, 'peak_feat':peak_feature, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
+    vgrampy_param_dict = {'Vgrampy version':'20260807', 'log':do_log, 'peak_feat':peak_feature, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
                           'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
     vgrampy_param_df = pd.DataFrame.from_dict(vgrampy_param_dict, orient='index', columns=[0]).T
     # print(vgrampy_param_df)
