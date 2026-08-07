@@ -165,10 +165,9 @@ class Init_Window(UI_InitWindow):
                                 # print(df)
                                 all_signal = pd.concat([all_signal, df])
                 all_signal['condition'] = all_signal['file'].str.split('_').str.get(3)
-                all_signal['drug_conc'] = all_signal['file'].str.split('_').str.get(4).str.split('cbz').str.get(1)
+                all_signal['drug_conc'] = all_signal['file'].str.split('_').str.get(4).str.split(user_input['type_id']).str.get(1)
                 if all_signal['drug_conc'].str.contains('p').any():
-                    all_signal['drug_conc'] = all_signal['drug_conc'].str.replace('p', '.')
-                
+                    all_signal['drug_conc'] = all_signal['drug_conc'].str.replace('p', '.')                
                 all_signal['drug_conc'] = all_signal['drug_conc'].astype(float)
 
                 avg_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).mean().round(4).reset_index()
