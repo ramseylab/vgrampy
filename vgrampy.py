@@ -82,7 +82,7 @@ class Init_Window(UI_InitWindow):
                         path = os.path.join(self.dir_path, path)
                 
                     for file in os.listdir(path):
-                        if file.endswith(".txt" or ".csv") and "_" in file:
+                        if (file.endswith(".txt") or file.endswith(".csv")) and "_" in file:
                             parts = file.split("_")
                             if len(parts) > 2:
                                 sheet_number = parts[3]
@@ -105,7 +105,7 @@ class Init_Window(UI_InitWindow):
                 'file_paths' : file_paths,
                 'toplot' : self.plot_data.get(),
                 'sep' : self.sprt_conc.get(),
-                'do_log' : self.log_data.get(),
+                'transform_mthd' : self.transform.get(),
                 'peak_feat' : self.peak_ftr.get(),
                 'smoothing_bw' : self.smth_var.get(),
                 'stiffness' : self.stff_var.get(),
@@ -271,7 +271,7 @@ class Custom_window(UI_custom):
         typeid_dict = {'cbz': 'Carbamazepine', 'lmg':'Lamotrigine', 'oxc':'Oxcarbazepine'}
         peak_dict = {1:'Curvature', 2:'Height', 3:'Area'}
 
-        do_log = user_input['do_log']
+        transform = user_input['transform']
         peak_feat = peak_dict[user_input['peak_feat']]
         smoothing_bw = user_input['smoothing_bw']
         stiffness = user_input['stiffness']
@@ -283,7 +283,7 @@ class Custom_window(UI_custom):
 
         fig.subplots_adjust(left=0.1, right=0.65)
         fig.text(0.7, 0.8, f'Analyte: {analyte}')
-        fig.text(0.7, 0.7, f'log: {do_log}')
+        fig.text(0.7, 0.7, f'transformation: {transform}')
         fig.text(0.7, 0.65, f'Peak feature: {peak_feat}')
         fig.text(0.7, 0.55, f'Smoothing: {smoothing_bw}')
         fig.text(0.7, 0.5, f'Stiffness: {stiffness}')

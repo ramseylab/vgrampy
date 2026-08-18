@@ -17,20 +17,9 @@ make_xlsx_str
 """
 
 
-def make_xlsx_str(fn_ex, do_log, peak_feature):
-    if do_log:  # if run with log-transform
-        log_str = "_log"
-    else:  # if not use log-transform
-        log_str = "_NOlog"
-    if peak_feature == 1:
-        peak_str = "_curvature"
-    elif peak_feature == 2:
-        peak_str = "_height"
-    else:
-        peak_str = "_area"
-
+def make_xlsx_str(fn_ex, transform_mthd_str, peak_feature_str):
     prfx = '_'.join(fn_ex.split('_')[0:4])+"_"+fn_ex.split('_')[4][:3]
-    data_str = f'{log_str}{peak_str}_{prfx}.xlsx'
+    data_str = f'_{transform_mthd_str}_{peak_feature_str}_{prfx}.xlsx'
 
     return data_str
 
@@ -72,7 +61,7 @@ run_vg2
 """
 
 
-def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max): # Add support for other analytes
+def run_vg2(folderpath, transform_mthd, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max): # Add support for other analytes
     vg_dict = dict()
     dfxl = pd.DataFrame()
     os.chdir(folderpath)  # change to desired folderpath
@@ -83,7 +72,7 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
         if filename[-3:] == 'txt' or filename[-3:] == 'csv': # Add support for .csv data
             print("Analyzing:", filename)
             (peak_signal, peak_v, vg_df, vcentershoulder, potentio_param_df) = vg2signal.v2signal(filename,
-                                                                               do_log,
+                                                                               transform_mthd,
                                                                                peak_feature,
                                                                                smoothing_bw,
                                                                                vwidth,
@@ -104,13 +93,13 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
             concstrxl = str(float(conc))
             concxl = list([concstrxl] * len(vg_df["V"]))
             replicatexl = list([replicate] * len(vg_df["V"]))
-            if do_log:
-                dfxl = pd.concat([dfxl, pd.DataFrame(
-                    [concxl, replicatexl, vg_df["V"], vg_df["I"], vg_df["logI"], vg_df["smoothed"],
-                     vg_df["detilted"]]).transpose()])
-            else:
-                dfxl = pd.concat([dfxl, pd.DataFrame(
-                    [concxl, replicatexl, vg_df["V"], vg_df["I"], vg_df["smoothed"], vg_df["detilted"]]).transpose()])
+
+            dfxl_temp = pd.DataFrame([concxl, replicatexl, vg_df["V"], vg_df["I"], vg_df["smoothed"], vg_df["detilted"]]).transpose()
+            if transform_mthd == 1:
+                dfxl_temp.insert(4, 'logI', vg_df['logI'])
+            elif transform_mthd == 2:
+                dfxl_temp.insert(4, 'asinhI', vg_df['asinhI'])
+            dfxl = pd.concat([dfxl, dfxl_temp])
 
             if peak_signal is None:
                 peak_signal = np.nan
@@ -132,10 +121,12 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
                 conc_dict[conc] = [(peak_signal, peak_v)]
                 vg_dict[conc] = [vg_df]
 
-    if do_log:        
-        dfxl.columns = ["conc", "replicate", "V", "I", "logI", "smoothed", "detilted"]
-    else:
+    if transform_mthd == 0:        
         dfxl.columns = ["conc", "replicate", "V", "I", "smoothed", "detilted"]
+    elif transform_mthd == 1:        
+        dfxl.columns = ["conc", "replicate", "V", "I", "logI", "smoothed", "detilted"]
+    elif transform_mthd == 2:
+        dfxl.columns = ["conc", "replicate", "V", "I", "asinhI", "smoothed", "detilted"]
 
     signal_df = pd.DataFrame(signal_lst, columns=["file", "signal", "peak V", "vcenter"])
 
@@ -166,18 +157,19 @@ def run_vg2(folderpath, do_log, peak_feature, smoothing_bw, stiffness, vwidth, t
     conc_df = pd.DataFrame(conc_lst_sorted, columns=["conc", "average", "std", "CV", "T-Statistic", "avg peak", "std peak"])
 
 
-
-    vgrampy_param_dict = {'Vgrampy version':'20260512', 'log':do_log, 'peak_feat':peak_feature, 'smoothing':smoothing_bw, 'v_width':vwidth, 'stiffness':stiffness,
-                          'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
+    peak_ftr_dict = {1:'curvature', 2:'height', 3:'area'}
+    transform_dict = {0:'None', 1:'log2', 2:'asinh'}
+    vgrampy_param_dict = {'Vgrampy version':'20260818', 'transformation':transform_dict[transform_mthd], 
+                          'peak_feat':peak_ftr_dict[peak_feature], 'smoothing':smoothing_bw, 'v_width':vwidth, 
+                          'stiffness':stiffness, 'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
     vgrampy_param_df = pd.DataFrame.from_dict(vgrampy_param_dict, orient='index', columns=[0]).T
     # print(vgrampy_param_df)
 
     # get filenames to save
     fn_ex = [fn for fn in os.listdir() if ('.txt' in fn) | ('.csv' in fn)][0]
-    data_str = make_xlsx_str(fn_ex, do_log, peak_feature)
+    data_str = make_xlsx_str(fn_ex, transform_dict[transform_mthd], peak_ftr_dict[peak_feature])
 
-    if len(all_param_df) > 0:
-        save_df_excel(all_param_df, signal_df, "signal", data_str, vgrampy_param_df)
+    save_df_excel(all_param_df, signal_df, "signal", data_str, vgrampy_param_df)
     save_df_excel(None, conc_df, "stats", data_str, None)
     save_df_excel(None, dfxl, "dataframe", data_str, None)
 
@@ -278,7 +270,7 @@ def run_folderpath(path, user_input):
     folderpath=path
     toplot=user_input['toplot']
     sep=user_input['sep']
-    do_log=user_input['do_log']
+    transform_mthd=user_input['transform_mthd']
     peak_feat=user_input['peak_feat']
     smoothing_bw=user_input['smoothing_bw']
     stiffness=user_input['stiffness']
@@ -288,7 +280,7 @@ def run_folderpath(path, user_input):
     pv_min=user_input['pv_min']
     pv_max=user_input['pv_max']
 
-    vg_d, param_str = run_vg2(folderpath, do_log, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
+    vg_d, param_str = run_vg2(folderpath, transform_mthd, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
 
     if toplot:
         print("Saving Plots...")
@@ -310,7 +302,7 @@ if __name__ == '__main__': # added variables to maintain command line functional
                    "0.006, stiffness = 0, vwidth = 0.15, peak range = 1,1.1) ")
 
     if custom == "Y":
-        do_loginput = bool(input("Do you want to log-transform? (1: log, 0: no log): "))
+        do_transformation = int(input("Do you want to transform? (0: None, 1: log2, 2: asinh): "))
 
         peak_featinput = int(input("Enter the peak feature (curvature: 1, height: 2, area: 3): "))
         if peak_featinput < 1 or peak_featinput > 3:
@@ -329,7 +321,7 @@ if __name__ == '__main__': # added variables to maintain command line functional
         pvmin = float(vrange_list[0])
         pvmax = float(vrange_list[1])
     else:
-        do_loginput = True  # log param
+        do_transformation = 1  # log param
         peak_featinput = 3 # 1:curvature, 2:height, 3:area
         smoothing_bwinput = 0.006  # smoothing bandwidth param
         stiffnessinput = 0  # stiffness param
@@ -354,4 +346,4 @@ if __name__ == '__main__': # added variables to maintain command line functional
 
     # run vg2 for file
     print("Processing: " + folder)
-    run_folderpath(folder, plot, sepplot, do_loginput, peak_featinput, smoothing_bwinput, stiffnessinput, vwidthinput, d_type_id, voltage_start, pv_min, pv_max)
+    run_folderpath(folder, plot, sepplot, do_transformation, peak_featinput, smoothing_bwinput, stiffnessinput, vwidthinput, d_type_id, voltage_start, pv_min, pv_max)

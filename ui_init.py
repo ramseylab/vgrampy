@@ -35,7 +35,7 @@ class UI_InitWindow():
         self.check_plot.place(relx=0.02, rely=0.12)
 
         self.trnsfm_data = tk.BooleanVar(self.init_window, value=True)
-        self.check_trnsfm = tk.Checkbutton(self.init_window, text="Transform data", font=fonts.medium, variable=self.trnsfm_data, onvalue=True, offvalue=False)
+        self.check_trnsfm = tk.Checkbutton(self.init_window, text="Transformed data", font=fonts.medium, variable=self.trnsfm_data, onvalue=True, offvalue=False)
         self.check_trnsfm.place(relx=0.51, rely=0.12)
 
         self.sprt_conc = tk.BooleanVar(self.init_window, value=False)
@@ -59,13 +59,15 @@ class UI_InitWindow():
         self.anl_frame = tk.Frame(self.init_window, bg = "#FFFFFF")
         self.anl_frame.place(relx=0, rely=0.3, relheight=0.15, relwidth=1.0)
 
-        self.log_lbl = tk.Label(self.init_window, text="Do log input?", foreground="black", background="#FFFFFF", font=fonts.medium)
-        self.log_lbl.place(relx=0.02, rely=0.32)
-        self.log_data = tk.BooleanVar(self.init_window); self.log_data.set(True)
-        self.radio_log_yes = tk.Radiobutton(self.init_window, text="Yes", background="#FFFFFF", font=fonts.medium, variable=self.log_data, value=True)
-        self.radio_log_yes.place(relx=0.27, rely=0.32)
-        self.radio_log_no = tk.Radiobutton(self.init_window, text="No", background="#FFFFFF", font=fonts.medium, variable=self.log_data, value=False)
-        self.radio_log_no.place(relx=0.42, rely=0.32)
+        self.trsf_labl = tk.Label(self.init_window, text="Do transformation?", foreground="black", background="#FFFFFF", font=fonts.medium)
+        self.trsf_labl.place(relx=0.02, rely=0.32)
+        self.transform = tk.IntVar(self.init_window); self.transform.set(1)
+        self.radio_log_yes = tk.Radiobutton(self.init_window, text="No", background="#FFFFFF", font=fonts.medium, variable=self.transform, value=0)
+        self.radio_log_yes.place(relx=0.35, rely=0.32)
+        self.radio_log_no = tk.Radiobutton(self.init_window, text="log2", background="#FFFFFF", font=fonts.medium, variable=self.transform, value=1)
+        self.radio_log_no.place(relx=0.50, rely=0.32)
+        self.radio_log_no = tk.Radiobutton(self.init_window, text="asinh", background="#FFFFFF", font=fonts.medium, variable=self.transform, value=2)
+        self.radio_log_no.place(relx=0.68, rely=0.32)
 
         self.pk_lbl = tk.Label(self.init_window, text="Peak Feature", foreground="black", background="#FFFFFF", font=fonts.medium)
         self.pk_lbl.place(relx=0.02, rely=0.37)

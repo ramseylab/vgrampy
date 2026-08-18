@@ -371,8 +371,8 @@ vg2signal
 
 
 def v2signal(vg_filename: str,
-             do_log: bool,
-             peak_feat: int,
+             transform_mthd: int,   # 0: No transformation / 1: log2 transformation / 2: asinh transformation
+             peak_feat: int,        # 1: curvature / 2: height / 3: area
              smoothing_bw: float,
              vwidth: float,
              stiffness: float,
@@ -386,13 +386,18 @@ def v2signal(vg_filename: str,
         potentio_param_df = gen_param_info(vg_filename)
         # print(potentio_param_df)
     else:
+        # skip to generate  param_df
         potentio_param_df = pd.DataFrame()
 
-    if do_log:
+    if transform_mthd == 0:     # No transformation
+        cur_var_name = "I"
+    elif transform_mthd == 1:   # log2 transformation (default)
         cur_var_name = "logI"
         vg_df[cur_var_name] = np.log2(vg_df["I"])
-    else:
-        cur_var_name = "I"
+    elif transform_mthd == 2:   # asinh transformation (for PalmSens)
+        cur_var_name = 'asinhI'
+        vg_df[cur_var_name] = np.arcsinh(vg_df["I"])
+        # print(vg_df)
 
     smoother = make_smoother(smoothing_bw)
 
