@@ -77,7 +77,7 @@ def read_raw_vg_as_df(filename: str, start_voltage:str) -> pd.DataFrame: # chang
             c_factor = -1E+6 # variable correction factor for diffrent potentiostats
 
         elif filename[-3:] == 'csv': # add .csv support
-            omit_e = 8  # Assuming the first 8 lines should be omitted, this should be variable in the future !!!
+            omit_e = 7 # Assuming the first 8 lines should be omitted, this should be variable in the future !!!
             c_factor = 1 # variable correction factor for diffrent potentiostats
             skip_footer_rows = 2 # Do not read the last two rows of data to prevent errors
             with open(filename, 'rb') as file:
@@ -98,7 +98,7 @@ def read_raw_vg_as_df(filename: str, start_voltage:str) -> pd.DataFrame: # chang
         # two-column dataframe, with negative current in the "I"
         # column and with the voltage in the "V" column
         printing_df = pd.read_csv( # no longer immediately return results for easier troubleshooting
-            input_file,
+            filename,
             sep=sep_char, # changed to a variable delimeter
             encoding='utf-8',
             skipfooter=skip_footer_rows,
@@ -110,7 +110,6 @@ def read_raw_vg_as_df(filename: str, start_voltage:str) -> pd.DataFrame: # chang
             lambda r: [r[0], c_factor * r[1]], # changed correction factor to a variable
             axis=1,
             raw=True)
-
         return printing_df
 
 """
@@ -372,8 +371,8 @@ vg2signal
 
 
 def v2signal(vg_filename: str,
-             do_log: bool,
-             peak_feat: int,
+             transform_mthd: int,   # 0: No transformation / 1: log2 transformation / 2: asinh transformation
+             peak_feat: int,        # 1: curvature / 2: height / 3: area
              smoothing_bw: float,
              vwidth: float,
              stiffness: float,
@@ -382,18 +381,28 @@ def v2signal(vg_filename: str,
              pv_max: float): # added support for diffrent analyates
 
     vg_df = read_raw_vg_as_df(vg_filename, v_start)
-    potentio_param_df = gen_param_info(vg_filename)
-    # print(potentio_param_df)
+    # print(vg_df)
+    if vg_filename[-3:] == 'txt':
+        potentio_param_df = gen_param_info(vg_filename)
+        # print(potentio_param_df)
+    else:
+        # skip to generate  param_df
+        potentio_param_df = pd.DataFrame()
 
-    if do_log:
+    if transform_mthd == 0:     # No transformation
+        cur_var_name = "I"
+    elif transform_mthd == 1:   # log2 transformation (default)
         cur_var_name = "logI"
         vg_df[cur_var_name] = np.log2(vg_df["I"])
-    else:
-        cur_var_name = "I"
+    elif transform_mthd == 2:   # asinh transformation (for PalmSens)
+        cur_var_name = 'asinhI'
+        vg_df[cur_var_name] = np.arcsinh(vg_df["I"])
+        # print(vg_df)
 
     smoother = make_smoother(smoothing_bw)
 
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
+    # print(vg_df)
 
     shoulder_getter = make_shoulder_getter(pv_min, pv_max)  # 1-1.1V is approx peak location for cbz, made variable for other analytes
     (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],
