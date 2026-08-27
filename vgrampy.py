@@ -113,7 +113,8 @@ class Init_Window(UI_InitWindow):
                 'type_id' : self.anlt_code.get(),
                 'v_start' : self.svltg_var.get(),
                 'pv_min' : self.vrange_start_var.get(),
-                'pv_max' : self.vrange_end_var.get()
+                'pv_max' : self.vrange_end_var.get(),
+                'do_alizarin' : self.alizarin.get()
             }
             input_flag = self.check_input(user_input)
             if input_flag == False:
@@ -152,6 +153,10 @@ class Init_Window(UI_InitWindow):
             if self.intgr_results.get():
                 all_signal = pd.DataFrame()
                 param_exist = False
+                if user_input['do_alizarin']:
+                    col_nums = [0,1,2,3,4]
+                else:
+                    col_nums = [0,1,2,3]
                 for path in file_paths:
                     for root, dirs, files in os.walk(path):
                         for file in files:
@@ -161,7 +166,8 @@ class Init_Window(UI_InitWindow):
                                     vgrampy_param_df = pd.read_excel(file_path, sheet_name='signal', nrows=2)
                                     param_exist = True
 
-                                df = pd.read_excel(file_path, sheet_name='signal', skiprows=3, usecols=[0,1,2,3])
+                                
+                                df = pd.read_excel(file_path, sheet_name='signal', skiprows=3, usecols=col_nums)
                                 # print(df)
                                 all_signal = pd.concat([all_signal, df])
                 all_signal['condition'] = all_signal['file'].str.split('_').str.get(3)
@@ -170,12 +176,22 @@ class Init_Window(UI_InitWindow):
                     all_signal['drug_conc'] = all_signal['drug_conc'].str.replace('p', '.')                
                 all_signal['drug_conc'] = all_signal['drug_conc'].astype(float)
 
-                avg_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).mean().round(4).reset_index()
-                avg_df.rename(columns={'signal':'AVG'}, inplace=True)
-                std_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).std().round(4).reset_index()
-                std_df.rename(columns={'signal':'STD'}, inplace=True)
+                sig_avg_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).mean().round(4).reset_index()
+                sig_avg_df.rename(columns={'signal':'signal_AVG'}, inplace=True)
+                sig_std_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).std().round(4).reset_index()
+                sig_std_df.rename(columns={'signal':'signal_STD'}, inplace=True)
+                sig_stat_df = sig_avg_df.merge(sig_std_df, on=['condition', 'drug_conc'])
 
-                stat_df = avg_df.merge(std_df, on=['condition', 'drug_conc'])
+                if user_input['do_alizarin']:
+                    alz_avg_df = all_signal[['condition', 'drug_conc', 'alz peak V']].groupby(['condition', 'drug_conc']).mean().round(4).reset_index()
+                    alz_avg_df.rename(columns={'alz peak V':'alz_AVG'}, inplace=True)
+                    alz_std_df = all_signal[['condition', 'drug_conc', 'alz peak V']].groupby(['condition', 'drug_conc']).std().round(4).reset_index()
+                    alz_std_df.rename(columns={'alz peak V':'alz_STD'}, inplace=True)
+                    alz_stat_df = alz_avg_df.merge(alz_std_df, on=['condition', 'drug_conc'])
+
+                    stat_df = sig_stat_df.merge(alz_stat_df, on=['condition', 'drug_conc'])
+                else:
+                    stat_df = sig_stat_df
                 
                 cnt_df = all_signal[['condition', 'drug_conc', 'signal']].groupby(['condition', 'drug_conc']).count().reset_index()
                 cnt_df.rename(columns={'signal':'count'}, inplace=True)

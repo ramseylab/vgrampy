@@ -61,7 +61,8 @@ run_vg2
 """
 
 
-def run_vg2(folderpath, transform_mthd, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max): # Add support for other analytes
+def run_vg2(folderpath, transform_mthd, peak_feature, smoothing_bw, stiffness, vwidth, type_id:str, v_start:str, pv_min, pv_max,
+            do_alizarin:bool): # Add support for other analytes
     vg_dict = dict()
     dfxl = pd.DataFrame()
     os.chdir(folderpath)  # change to desired folderpath
@@ -71,15 +72,16 @@ def run_vg2(folderpath, transform_mthd, peak_feature, smoothing_bw, stiffness, v
     for filename in os.listdir():
         if filename[-3:] == 'txt' or filename[-3:] == 'csv': # Add support for .csv data
             print("Analyzing:", filename)
-            (peak_signal, peak_v, vg_df, vcentershoulder, potentio_param_df) = vg2signal.v2signal(filename,
-                                                                               transform_mthd,
-                                                                               peak_feature,
-                                                                               smoothing_bw,
-                                                                               vwidth,
-                                                                               stiffness,
-                                                                               v_start,
-                                                                               pv_min,
-                                                                               pv_max)
+            (file_result, vg_df, potentio_param_df) = vg2signal.v2signal(filename,
+                                                                        transform_mthd,
+                                                                        peak_feature,
+                                                                        smoothing_bw,
+                                                                        vwidth,
+                                                                        stiffness,
+                                                                        v_start,
+                                                                        pv_min,
+                                                                        pv_max,
+                                                                        do_alizarin)
             all_param_df = pd.concat([all_param_df, potentio_param_df])
             idx1 = filename.rfind(type_id) # added support for non cbz analytes
             idx2 = filename[idx1:].find("_")
@@ -101,16 +103,12 @@ def run_vg2(folderpath, transform_mthd, peak_feature, smoothing_bw, stiffness, v
                 dfxl_temp.insert(4, 'asinhI', vg_df['asinhI'])
             dfxl = pd.concat([dfxl, dfxl_temp])
 
-            if peak_signal is None:
-                peak_signal = np.nan
-            if peak_v is None:
-                peak_v = np.nan
             # add text filename & peak signal to signal list
-            signal_lst.append([filename, round(peak_signal, 4), round(peak_v, 3), round(vcentershoulder, 3)])
+            signal_lst.append([filename]+file_result)
 
             if conc in conc_dict.keys():  # for each concentration
                 conclst = conc_dict[conc]
-                conclst.append((peak_signal, peak_v))  # add peak signal to concentration dictionary
+                conclst.append((file_result[-3], file_result[-2]))  # add peak signal to concentration dictionary
                 conc_dict[conc] = conclst
 
                 # for plotting purposes
@@ -118,17 +116,21 @@ def run_vg2(folderpath, transform_mthd, peak_feature, smoothing_bw, stiffness, v
                 plst.append(vg_df)
                 vg_dict[conc] = plst
             else:
-                conc_dict[conc] = [(peak_signal, peak_v)]
+                conc_dict[conc] = [(file_result[-3], file_result[-2])]
                 vg_dict[conc] = [vg_df]
 
-    if transform_mthd == 0:        
-        dfxl.columns = ["conc", "replicate", "V", "I", "smoothed", "detilted"]
-    elif transform_mthd == 1:        
-        dfxl.columns = ["conc", "replicate", "V", "I", "logI", "smoothed", "detilted"]
+    # print(dfxl)
+    dfxl_cols = ["conc", "replicate", "V", "I", "smoothed", "detilted"]
+    if transform_mthd == 1:        
+        dfxl_cols.insert(4, 'logI')
     elif transform_mthd == 2:
-        dfxl.columns = ["conc", "replicate", "V", "I", "asinhI", "smoothed", "detilted"]
+        dfxl_cols.insert(4, 'asinhI')
+    dfxl.columns = dfxl_cols
 
-    signal_df = pd.DataFrame(signal_lst, columns=["file", "signal", "peak V", "vcenter"])
+    sig_cols = ["file", "signal", "peak V", "vcenter"]
+    if do_alizarin:
+        sig_cols.insert(1, 'alz peak V')
+    signal_df = pd.DataFrame(signal_lst, columns=sig_cols)
 
     conc_list = []
     concs_targetlst = sorted([c for idx, c in enumerate(list(conc_dict.keys()))], key=lambda v: float(v))
@@ -159,7 +161,7 @@ def run_vg2(folderpath, transform_mthd, peak_feature, smoothing_bw, stiffness, v
 
     peak_ftr_dict = {1:'curvature', 2:'height', 3:'area'}
     transform_dict = {0:'None', 1:'log2', 2:'asinh'}
-    vgrampy_param_dict = {'Vgrampy version':'20260818', 'transformation':transform_dict[transform_mthd], 
+    vgrampy_param_dict = {'Vgrampy version':'20260827', 'transformation':transform_dict[transform_mthd], 
                           'peak_feat':peak_ftr_dict[peak_feature], 'smoothing':smoothing_bw, 'v_width':vwidth, 
                           'stiffness':stiffness, 'vstart':v_start, 'peak range':f'{pv_min}-{pv_max}'}
     vgrampy_param_df = pd.DataFrame.from_dict(vgrampy_param_dict, orient='index', columns=[0]).T
@@ -279,8 +281,9 @@ def run_folderpath(path, user_input):
     v_start=user_input['v_start']
     pv_min=user_input['pv_min']
     pv_max=user_input['pv_max']
+    do_alizarin=user_input['do_alizarin']
 
-    vg_d, param_str = run_vg2(folderpath, transform_mthd, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max)
+    vg_d, param_str = run_vg2(folderpath, transform_mthd, peak_feat, smoothing_bw, stiffness, vwidth, type_id, v_start, pv_min, pv_max, do_alizarin)
 
     if toplot:
         print("Saving Plots...")

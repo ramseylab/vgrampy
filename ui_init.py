@@ -62,12 +62,12 @@ class UI_InitWindow():
         self.trsf_labl = tk.Label(self.init_window, text="Do transformation?", foreground="black", background="#FFFFFF", font=fonts.medium)
         self.trsf_labl.place(relx=0.02, rely=0.32)
         self.transform = tk.IntVar(self.init_window); self.transform.set(1)
-        self.radio_log_yes = tk.Radiobutton(self.init_window, text="No", background="#FFFFFF", font=fonts.medium, variable=self.transform, value=0)
-        self.radio_log_yes.place(relx=0.35, rely=0.32)
-        self.radio_log_no = tk.Radiobutton(self.init_window, text="log2", background="#FFFFFF", font=fonts.medium, variable=self.transform, value=1)
-        self.radio_log_no.place(relx=0.50, rely=0.32)
-        self.radio_log_no = tk.Radiobutton(self.init_window, text="asinh", background="#FFFFFF", font=fonts.medium, variable=self.transform, value=2)
-        self.radio_log_no.place(relx=0.68, rely=0.32)
+        self.radio_no = tk.Radiobutton(self.init_window, text="No", background="#FFFFFF", font=fonts.medium, variable=self.transform, value=0)
+        self.radio_no.place(relx=0.35, rely=0.32)
+        self.radio_log = tk.Radiobutton(self.init_window, text="log2", background="#FFFFFF", font=fonts.medium, variable=self.transform, value=1)
+        self.radio_log.place(relx=0.50, rely=0.32)
+        self.radio_asinh = tk.Radiobutton(self.init_window, text="asinh", background="#FFFFFF", font=fonts.medium, variable=self.transform, value=2)
+        self.radio_asinh.place(relx=0.70, rely=0.32)
 
         self.pk_lbl = tk.Label(self.init_window, text="Peak Feature", foreground="black", background="#FFFFFF", font=fonts.medium)
         self.pk_lbl.place(relx=0.02, rely=0.37)
@@ -77,7 +77,7 @@ class UI_InitWindow():
         self.radio_cvtr = tk.Radiobutton(self.init_window, text="Curvature", background="#FFFFFF", font=fonts.medium, variable=self.peak_ftr, value=1)
         self.radio_cvtr.place(relx=0.44, rely=0.37)
         self.radio_height = tk.Radiobutton(self.init_window, text="Height", background="#FFFFFF", font=fonts.medium, variable=self.peak_ftr, value=2)
-        self.radio_height.place(relx=0.68, rely=0.37)
+        self.radio_height.place(relx=0.70, rely=0.37)
 
         self.smth_lbl = tk.Label(self.init_window, text="Smoothing", foreground="black", font=fonts.medium)
         self.smth_lbl.place(relx=0.02, rely=0.47)
@@ -128,6 +128,14 @@ class UI_InitWindow():
         # self.radio_height = tk.Radiobutton(self.init_window, text="Others", font=fonts.medium, variable=self.anlt_code, value='')
         # self.radio_height.place(relx=0.55, rely=0.78)
 
+        self.aliz_lbl = tk.Label(self.init_window, text="Alizarin", foreground="black", font=fonts.medium)
+        self.aliz_lbl.place(relx=0.02, rely=0.83)
+        self.alizarin = tk.BooleanVar(self.init_window); self.alizarin.set(False)
+        self.radio_no = tk.Radiobutton(self.init_window, text="Excluded", font=fonts.medium, variable=self.alizarin, value=False, command=self.update_startVoltage)
+        self.radio_no.place(relx=0.2, rely=0.83)
+        self.radio_yes = tk.Radiobutton(self.init_window, text="Included", font=fonts.medium, variable=self.alizarin, value=True, command=self.update_startVoltage)
+        self.radio_yes.place(relx=0.55, rely=0.83)
+
         self.bttn_run = tk.Button(self.init_window, compound="c", font=fonts.large_bold, text='Run Analysis', highlightbackground='#0047AB', highlightcolor='#0047AB', bg='#0047AB', activebackground='#0047AB')
         self.bttn_run.place(relx=0.1, rely=0.9, relwidth=0.8, relheight=0.08)
     
@@ -150,6 +158,17 @@ class UI_InitWindow():
             self.vrange_end_var.set(1.4)
         else:
             pass
+
+    def update_startVoltage(self):
+        if self.alizarin.get():
+            self.svltg_var.set('0.124')
+        else:            
+            if self.anlt_code.get() == 'cbz':
+                self.svltg_var.set('0.852')
+            elif self.anlt_code.get() == 'lmg':
+                self.svltg_var.set('0.852')
+            elif self.anlt_code.get() == 'oxc':
+                self.svltg_var.set('0.952')
 
     def disable_custom_able_intgr(self):
         if self.sprt_cond.get() | self.sprt_conc.get():

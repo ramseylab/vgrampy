@@ -247,7 +247,7 @@ def make_signal_getter(
         y_win = lisd[v_in]
 
         if len(v_win) < min_points:     # why >= 7 points?
-            return None, None
+            return np.nan, np.nan
 
         # Provisional peak = max observed value in the window
         i0 = np.argmax(y_win)
@@ -275,24 +275,83 @@ def make_signal_getter(
 
         # Estimated local extremum of fitted quadratic
         if abs(c) < 1e-12:
-            return None, None
+            return np.nan, np.nan
 
         x_peak = -b / (2.0 * c)
         v_peak = v0 + x_peak
 
         # Reject if fitted extremum is too far from local window
         if v_peak < v_local.min() or v_peak > v_local.max():
-            return None, None
+            return np.nan, np.nan
 
         # Must be concave down to be a peak
         second_derivative = 2.0 * c
         if second_derivative >= 0:
-            return None, None
+            return np.nan, np.nan
 
         signal = -second_derivative
         return float(signal), float(v_peak)
 
     return signal_getter_func
+
+
+def make_alzpeak_getter(
+        astart: float,
+        aend: float,
+        fit_half_width: float = 0.015,
+        min_points: int = 11
+) -> typing.Callable:
+    
+    def alzpeak_getter_func(v: np.ndarray, lisd: np.ndarray):
+        
+        v = np.asarray(v)
+        lisd = np.asarray(lisd)
+
+        a_in = (v >= astart) & (v <= aend)
+        a_win = v[a_in]
+        y_win = lisd[a_in]
+
+        if len(a_win) < min_points:   
+            return np.nan
+
+        # Provisional peak = max observed value in the window
+        i0 = np.argmax(y_win)
+        a0 = float(a_win[i0])
+
+        # Local neighborhood around provisional peak
+        a_local_mask = np.abs(a_win - a0) <= fit_half_width
+        a_local = a_win[a_local_mask]
+        y_local = y_win[a_local_mask]
+
+        if len(a_local) < min_points:
+            # Fallback: use nearest min_points points
+            idx_sorted = np.argsort(np.abs(a_win - a0))
+            idx_use = np.sort(idx_sorted[:min_points])
+            a_local = a_win[idx_use]
+            y_local = y_win[idx_use]
+
+        # Center voltage for numerical stability
+        x = a_local - a0
+
+        # Quadratic fit: y = a + b*x + c*x^2
+        X = np.column_stack([np.ones_like(x), x, x**2])
+        beta, *_ = np.linalg.lstsq(X, y_local, rcond=None)
+        a, b, c = beta
+
+        x_peak = -b / (2.0 * c)
+        a_peak = a0 + x_peak
+
+        # Reject if fitted extremum is too far from local window
+        if a_peak < a_local.min() or a_peak > a_local.max():
+            return np.nan
+
+        return a_peak
+
+    return alzpeak_getter_func
+    
+
+
+
 
 """
 make_signal_getter
@@ -378,7 +437,8 @@ def v2signal(vg_filename: str,
              stiffness: float,
              v_start: str,
              pv_min: float,
-             pv_max: float): # added support for diffrent analyates
+             pv_max: float,
+             do_alizarin: bool): # added support for diffrent analyates
 
     vg_df = read_raw_vg_as_df(vg_filename, v_start)
     # print(vg_df)
@@ -400,16 +460,26 @@ def v2signal(vg_filename: str,
         # print(vg_df)
 
     smoother = make_smoother(smoothing_bw)
-
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
     # print(vg_df)
+
+    ### alizarin peak detection ###
+    if do_alizarin == True:
+        alz_shldr_getter = make_shoulder_getter(0.2, 0.6)
+        _, acenter = alz_shldr_getter(vg_df['V'], vg_df['smoothed'])
+        # print('acenter:', acenter)
+        astart = acenter - 0.5 * vwidth
+        aend = acenter + 0.5 * vwidth
+        alz_peak_getter = make_alzpeak_getter(astart, aend)
+        alz_peak = alz_peak_getter(vg_df['V'], vg_df['smoothed'])
+        # print('alz_peak:', alz_peak)
 
     shoulder_getter = make_shoulder_getter(pv_min, pv_max)  # 1-1.1V is approx peak location for cbz, made variable for other analytes
     (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],
                                                      vg_df["smoothed"])
 
     vcenter = peak_v_shoulder
-    vstart = vcenter - 0.5*vwidth       # !!! Is vwidth wide enough? 
+    vstart = vcenter - 0.5*vwidth
     vend = vcenter + 0.5*vwidth
 
     detilter = make_detilter(vstart, vend, stiffness)
@@ -430,4 +500,9 @@ def v2signal(vg_filename: str,
         peakarea = metrics.auc(vg_df["V"], vg_df["detilted"])*1000
         peak_signal_return = peakarea  # if signal metric is peak area
 
-    return peak_signal_return, peak_v_return, vg_df, vcenter, potentio_param_df
+    if do_alizarin:
+        file_result = [round(alz_peak, 3), round(peak_signal_return, 4), round(peak_v_return, 3), round(vcenter, 3)]
+    else:
+        file_result = [round(peak_signal_return, 4), round(peak_v_return, 3), round(vcenter, 3)]
+
+    return file_result, vg_df, potentio_param_df
