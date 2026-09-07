@@ -182,6 +182,71 @@ def make_shoulder_getter(vstart: float,
         return None, v_peak
     return shoulder_getter_func
 
+"""
+make_alz_shoulder_getter
+- takes a rough voltage location of peak shoulder
+- retrun: voltage location of peak shoulder used as "acenter"
+"""
+
+def make_alz_shoulder_getter(vstart: float = 0.2,
+                         vend: float = 0.6) -> typing.Callable:
+    def alz_shoulder_getter_func(v: np.array,
+                             lisd: np.array): # added error reporting, no change in how data is processed
+        # Check for NaN or infinite values and report their locations
+        nan_v_indices = np.where(np.isnan(v))[0]
+        nan_lisd_indices = np.where(np.isnan(lisd))[0]
+        inf_v_indices = np.where(np.isinf(v))[0]
+        inf_lisd_indices = np.where(np.isinf(lisd))[0]
+
+        # Report if NaN or inf values are found
+        if nan_v_indices.size > 0:
+            print(f"NaN values found in 'v' at indices: {nan_v_indices}")
+            messagebox.showError(error="NaN values found in 'v', Please clean your input data before proceeding.")
+        if nan_lisd_indices.size > 0:
+            print(f"NaN values found in 'lisd' at indices: {nan_lisd_indices}")
+            messagebox.showError(error="NaN values found in 'I', Please clean your input data before proceeding.")
+        if inf_v_indices.size > 0:
+            print(f"Infinite values found in 'v' at indices: {inf_v_indices}")
+            messagebox.showError(error="Infinite values found in 'v', Please clean your input data before proceeding.")
+        if inf_lisd_indices.size > 0:
+            print(f"Infinite values found in 'lisd' at indices: {inf_lisd_indices}")
+            messagebox.showError(error="Infinite values found in 'I', Please clean your input data before proceeding.")
+
+        # Exit early if any NaN or inf values are found
+        if nan_v_indices.size > 0 or nan_lisd_indices.size > 0 or inf_v_indices.size > 0 or inf_lisd_indices.size > 0:
+            print("Please clean your input data before proceeding.")
+            return None, None
+
+        # Filter data within the range [vstart, vend]
+        v_in = np.logical_and(v >= vstart, v <= vend)
+        if not np.any(v_in):
+            print("No valid data points in the specified range.")
+            return None, None
+        spline_model = scipy.interpolate.UnivariateSpline(v[v_in],
+                                                          lisd[v_in],
+                                                          s=0,
+                                                          k=2)
+
+        # we are looking for stationary points where the first derivative vanishes
+        spl_mdl_d = spline_model.derivative(n=1)
+        spl_mdl_d_pred = spl_mdl_d(v[v_in])
+        spl_mdl_d_b = scipy.interpolate.splrep(v[v_in],
+                                                 spl_mdl_d_pred)
+        spl_mdl_d_ppoly = scipy.interpolate.PPoly.from_spline(spl_mdl_d_b)
+        roots_d = spl_mdl_d_ppoly.roots(extrapolate=False)
+
+        if len(roots_d) == 1:
+            a_peak = float(roots_d[0])
+        elif len(roots_d) > 1:  # if multiple first derivatives
+            idx = spline_model(np.array(roots_d)).argmax()  # emprically
+            a_peak = roots_d[idx]
+        else:  # if no first derivative, get minimum of spline model
+            idx = spline_model(v[v_in]).argmax()
+            vin = list(v[v_in])
+            a_peak = vin[idx]
+            print("WARNING: no roots found")
+        return None, a_peak
+    return alz_shoulder_getter_func
 
 """
 make_smoother
@@ -465,7 +530,7 @@ def v2signal(vg_filename: str,
 
     ### alizarin peak detection ###
     if do_alizarin == True:
-        alz_shldr_getter = make_shoulder_getter(0.2, 0.6)
+        alz_shldr_getter = make_alz_shoulder_getter() # 0.2 - 0.6 V
         _, acenter = alz_shldr_getter(vg_df['V'], vg_df['smoothed'])
         # print('acenter:', acenter)
         astart = acenter - 0.5 * vwidth
