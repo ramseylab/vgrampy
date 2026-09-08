@@ -364,7 +364,7 @@ def make_alzpeak_getter(
         astart: float,
         aend: float,
         fit_half_width: float = 0.015,
-        min_points: int = 11
+        min_points: int = 11 #!!!!!!!!!!!!!
 ) -> typing.Callable:
     
     def alzpeak_getter_func(v: np.ndarray, lisd: np.ndarray):
@@ -402,15 +402,15 @@ def make_alzpeak_getter(
         X = np.column_stack([np.ones_like(x), x, x**2])
         beta, *_ = np.linalg.lstsq(X, y_local, rcond=None)
         a, b, c = beta
-
+        
         x_peak = -b / (2.0 * c)
         a_peak = a0 + x_peak
 
         # Reject if fitted extremum is too far from local window
         if a_peak < a_local.min() or a_peak > a_local.max():
-            return np.nan
+            return np.nan, [np.nan, np.nan, np.nan]
 
-        return a_peak
+        return a_peak, [a, b, c]
 
     return alzpeak_getter_func
     
@@ -536,8 +536,13 @@ def v2signal(vg_filename: str,
         astart = acenter - 0.5 * vwidth
         aend = acenter + 0.5 * vwidth
         alz_peak_getter = make_alzpeak_getter(astart, aend)
-        alz_peak = alz_peak_getter(vg_df['V'], vg_df['smoothed'])
+        alz_peak, coefs = alz_peak_getter(vg_df['V'], vg_df['smoothed'])
         # print('alz_peak:', alz_peak)
+
+        ### coefficient stability check
+        coef_df = pd.DataFrame([[vg_filename]+coefs], columns=['file', 'a', 'b', 'c'])
+        # print(coef_df)
+        coef_df.to_csv('C:/Users/jeongsu/Downloads/coef_df.csv', header=None, mode='a', index=False)
 
     shoulder_getter = make_shoulder_getter(pv_min, pv_max)  # 1-1.1V is approx peak location for cbz, made variable for other analytes
     (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],
