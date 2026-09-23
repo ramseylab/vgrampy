@@ -505,8 +505,10 @@ def v2signal(vg_filename: str,
              pv_max: float,
              do_alizarin: bool): # added support for diffrent analyates
 
-    vg_df = read_raw_vg_as_df(vg_filename, v_start)
-    # print(vg_df)
+    all_df = read_raw_vg_as_df(vg_filename, v_start)
+    vg_df = all_df.loc[all_df['V'] >= 0.852].copy().reset_index(drop=True)
+    alz_df = all_df.loc[all_df['V'] < 0.852].copy()
+
     if vg_filename[-3:] == 'txt':
         potentio_param_df = gen_param_info(vg_filename)
         # print(potentio_param_df)
@@ -526,23 +528,20 @@ def v2signal(vg_filename: str,
 
     smoother = make_smoother(smoothing_bw)
     vg_df["smoothed"] = smoother(vg_df["V"], vg_df[cur_var_name].to_numpy())
+    alz_df["smoothed"] = smoother(alz_df["V"], alz_df['I'].to_numpy())
     # print(vg_df)
 
     ### alizarin peak detection ###
     if do_alizarin == True:
+        # print(alz_df)
         alz_shldr_getter = make_alz_shoulder_getter() # 0.2 - 0.6 V
-        _, acenter = alz_shldr_getter(vg_df['V'], vg_df['smoothed'])
+        _, acenter = alz_shldr_getter(alz_df['V'], alz_df['smoothed'])
         # print('acenter:', acenter)
         astart = acenter - 0.5 * vwidth
         aend = acenter + 0.5 * vwidth
         alz_peak_getter = make_alzpeak_getter(astart, aend)
-        alz_peak, coefs = alz_peak_getter(vg_df['V'], vg_df['smoothed'])
+        alz_peak, coefs = alz_peak_getter(alz_df['V'], alz_df['smoothed'])
         # print('alz_peak:', alz_peak)
-
-        ### coefficient stability check
-        coef_df = pd.DataFrame([[vg_filename]+coefs], columns=['file', 'a', 'b', 'c'])
-        # print(coef_df)
-        coef_df.to_csv('C:/Users/jeongsu/Downloads/coef_df.csv', header=None, mode='a', index=False)
 
     shoulder_getter = make_shoulder_getter(pv_min, pv_max)  # 1-1.1V is approx peak location for cbz, made variable for other analytes
     (peak_signal, peak_v_shoulder) = shoulder_getter(vg_df["V"],
